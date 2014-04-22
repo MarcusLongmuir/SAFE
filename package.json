@@ -4,8 +4,10 @@
     "private": true,
     "dependencies": {},
     "devDependencies": {
-        "grunt": "*",
-        "grunt-contrib-uglify": "*",
-        "matchdep": "*"
-    }
+		"gulp-util": "^2.2.14",
+		"gulp": "^3.6.1",
+		"gulp-uglify": "^0.2.1",
+		"gulp-concat": "^2.2.0",
+		"gulp-watch": "^0.6.2"
+	}
 }
