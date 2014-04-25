@@ -2369,6 +2369,7 @@ function SAFE() {
         sf.origin += ":" + window.location.port;
     }
     sf.path = "";
+    sf.previous_url = document.referrer;
     sf.url_changed_callback = function(url) {};
     sf.transition_page_callback = function(new_page, old_page) {
         return false
@@ -2711,8 +2712,10 @@ SAFE.prototype.get_class_and_details_for_url = function(url_with_parameters) {
 SAFE.prototype.load_url = function(url_with_parameters, push_state) {
     var sf = this;
 
+    var full_url = Site.origin + url_with_parameters;
+
     if (!sf.history_state_supported) {
-        var target = encodeURI(Site.origin + url_with_parameters);
+        var target = encodeURI(full_url);
         if (window.location != target) {
             window.location = target;
             return;
@@ -2720,7 +2723,8 @@ SAFE.prototype.load_url = function(url_with_parameters, push_state) {
     } else {
         if (push_state) {
             sf.ignore_next_url = true;
-            History.pushState(null, "", Site.origin + url_with_parameters);
+            History.pushState(null, "", full_url);
+            sf.previous_url = full_url;
         }
     }
 
