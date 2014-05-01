@@ -2389,11 +2389,12 @@ function SAFE() {
     sf.no_page_found_class = null;
 }
 
-SAFE.console = console;
-if (typeof(SAFE.console) === 'undefined') {
+if (typeof(console) === 'undefined') {
     var cons = {}
     cons.log = cons.error = cons.info = cons.debug = cons.warn = cons.trace = cons.dir = cons.dirxml = cons.group = cons.groupEnd = cons.time = cons.timeEnd = cons.assert = cons.profile = function() {};
     SAFE.console = cons;
+} else {
+    SAFE.console = console;
 }
 
 //Used to subclass Javascript classes
