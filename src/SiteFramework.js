@@ -10,7 +10,7 @@ function SAFE() {
     if (window.location.port != "") {
         sf.origin += ":" + window.location.port;
     }
-    sf.path = "";
+    sf.path = "/";
     sf.previous_url = document.referrer;
     sf.url_changed_callback = function(url) {};
     sf.transition_page_callback = function(new_page, old_page) {
@@ -304,6 +304,9 @@ SAFE.prototype.get_class_and_details_for_url = function(url_with_parameters) {
 
     var effective_path = sf.path;
     if (effective_path != "") {
+        if(effective_path[0]!="/"){
+            effective_path = "/"+effective_path;
+        }
         if (effective_path[effective_path.length - 1] != '/') {
             effective_path += "/";
         }
