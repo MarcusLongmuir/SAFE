@@ -113,7 +113,7 @@ SAFE.prototype.use_page_class = function(class_name, parameters, url, wildcard_c
         return;
     }
 
-    sf.current_page = new_page = new class_name(parameters, url, wildcard_contents);
+    sf.current_page = new_page = new class_name(parameters, url, wildcard_contents, old_page);
     sf.previous_class_name = class_name;
 
 
