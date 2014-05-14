@@ -236,18 +236,25 @@ SAFE.prototype.reload_page = function() {
     );
 }
 
-SAFE.prototype.replace_current_url = function(new_url) {
+SAFE.prototype.replace_current_url = function(new_url, call_url_changed_callback) {
     /* Change the current url without loading any new page or providing a new url to the current page. This function is rarely useful and should be avoided in most circumstances. */
     var sf = this;
 
-    History.replaceState(null, "", Site.origin + new_url);
+    call_url_changed_callback = (typeof call_url_changed_callback)!="undefined" ? call_url_changed_callback : true;
 
-    sf.url_changed_callback(
-        window.location.toString(),
-        window.location.pathname,
-        window.location.toString().substring(Site.origin.length),
-        false
-    );
+    var previous_ignore_value = sf.ignore_next_url;
+    sf.ignore_next_url = true;
+    History.replaceState(null, "", Site.origin + new_url);
+    sf.ignore_next_url = previous_ignore_value;
+
+    if(call_url_changed_callback){
+        sf.url_changed_callback(
+            window.location.toString(),
+            window.location.pathname,
+            window.location.toString().substring(Site.origin.length),
+            false
+        );
+    }
 }
 
 SAFE.prototype.add_url = function(url, class_name) {
