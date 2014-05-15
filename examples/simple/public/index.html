@@ -31,7 +31,7 @@
 
 					// This callback is called before the current page's resize function is called. Use this callback to resize elements other than the page and set values that pages could make use of.
 
-					resize_obj.large_screen = resize_obj.doc_width > 700;
+					resize_obj.large_screen = resize_obj.window_width > 700;
 
 					header.resize(resize_obj);
 				}

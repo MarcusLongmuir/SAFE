@@ -42,6 +42,6 @@ HomePage.prototype.remove = function() {
 
 HomePage.prototype.resize = function(resize_obj) {
     var page = this;
-    page.stats_element.text("Document width: " + resize_obj.doc_width + " Document height: " + resize_obj.doc_height + " Large screen: " + resize_obj.large_screen);
+    page.stats_element.text("Document width: " + resize_obj.window_width + " Document height: " + resize_obj.window_height + " Large screen: " + resize_obj.large_screen);
 
 }

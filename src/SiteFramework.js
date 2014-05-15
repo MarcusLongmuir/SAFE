@@ -163,13 +163,18 @@ SAFE.prototype.ajax_delete = function(request) {
 SAFE.prototype.resize = function() {
     var sf = this;
 
-    var doc_width = $(window).width() - sf.scroll_bar_width();
-    var doc_height = $(window).height();
+    var doc_width = $(document).width() - sf.scroll_bar_width();
+    var doc_height = $(document).height();
+
+    var window_width = $(window).width() - sf.scroll_bar_width();
+    var window_height = $(window).height();
 
     var resize_obj = {
         scroll_bar_width: sf.scroll_bar_width(),
         doc_width: doc_width,
-        doc_height: doc_height
+        doc_height: doc_height,
+        window_width: window_width,
+        window_height: window_height
     }
 
     sf.on_resize(resize_obj);
