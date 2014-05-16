@@ -19,6 +19,8 @@ function SAFE() {
     sf.pre_load_callback = function(class_name, parameters, url, wildcard_contents) {
         return null
     };
+    sf.load_page_class = null;
+    sf.loading_page = null;
     sf.on_resize = function(resize_obj) {};
     sf.scroll_bar_width_value = -1;
 
@@ -77,6 +79,39 @@ SAFE.prototype.build_query_string = function(params) {
 
 SAFE.prototype.use_page_class = function(class_name, parameters, url, wildcard_contents) {
     var sf = this;
+
+    if((typeof class_name)==='string'){
+        //This is then name of a class, rather than the class itself
+        
+        var found_class = window[class_name];
+        if(found_class===undefined){
+            if(sf.load_page_class!==null){
+
+                var load_class = class_name;
+
+                setTimeout(function(){
+
+                    sf.load_page_class(load_class,function(class_def, class_css){
+                        $("<style />").text(class_css).appendTo("head");
+                        sf.use_page_class(class_def,parameters,url,wildcard_contents);
+                    });
+
+                },1000);
+
+                if(sf.loading_page!==null){
+                    class_name = sf.loading_page;
+                } else {
+                    return;
+                }
+
+            } else {
+                SAFE.console.error("The requested class ("+class_name+") was not found and dynamic class loading is not enabled");
+                class_name = null;
+            }
+        } else {
+            class_name = found_class;
+        }
+    }
 
     if (class_name == null) { //404
         if (sf.no_page_found_class == null) {
@@ -290,8 +325,13 @@ SAFE.prototype.get_class_for_url = function(url_with_parameters) {
 
     var class_and_details = sf.get_class_and_details_for_url(url_with_parameters);
 
+    var class_def = window[class_and_details.class_name];
+    if(class_def===undefined){
+        class_def = class_and_details.class_name;
+    }
+
     if (class_and_details != null) {
-        return class_and_details.class_name;
+        return class_def;
     }
     return null;
 }
