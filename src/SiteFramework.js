@@ -92,7 +92,14 @@ SAFE.prototype.use_page_class = function(class_name, parameters, url, wildcard_c
                 setTimeout(function(){
 
                     sf.load_page_class(load_class,function(class_def, class_css){
-                        $("<style />").text(class_css).appendTo("head");
+                        var css = document.createElement("style");
+                        css.type = "text/css";
+                        if (css.styleSheet){
+                            css.styleSheet.cssText = class_css;
+                        } else {
+                            css.appendChild(document.createTextNode(class_css));
+                        }
+                        $("head")[0].appendChild(css);
                         sf.use_page_class(class_def,parameters,url,wildcard_contents);
                     });
 
@@ -201,8 +208,8 @@ SAFE.prototype.resize = function() {
     var doc_width = $(document).width() - sf.scroll_bar_width();
     var doc_height = $(document).height();
 
-    var window_width = $(window).width() - sf.scroll_bar_width();
-    var window_height = $(window).height();
+    var window_width = $(window).outerWidth();
+    var window_height = $(window).outerHeight();
 
     var resize_obj = {
         scroll_bar_width: sf.scroll_bar_width(),
