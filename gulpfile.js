@@ -4,16 +4,14 @@ var gutil = require('gulp-util');
 var concat = require('gulp-concat');
 var uglify = require('gulp-uglify');
 var watch = require('gulp-watch');
+var gulpImports = require('gulp-imports');
 var path = require('path');
 
-gulp.task('uglify', function(){
-    gulp.src([
-        'src/jquery.history.js',
-        'src/jquery.ajax_url.js',
-        'src/jquery.tappable.js',
-        'src/Page.js',
+gulp.task('js', function(){
+    return gulp.src([
         'src/SiteFramework.js'
     ])
+    .pipe(gulpImports())
     .pipe(concat('safe.js'))
     .pipe(gulp.dest('./'))
     .pipe(uglify())
@@ -22,5 +20,5 @@ gulp.task('uglify', function(){
     .on('error', gutil.log);
 })
 gulp.task('default', function(){
-    gulp.watch('src/*.js', ['uglify']);
+    gulp.watch('src/**.js', ['js']);
 });

@@ -2356,6 +2356,7 @@ Page.prototype.resize = function(resize_obj) {}
 Page.prototype.init = function() {}
 
 Page.prototype.remove = function() {}
+
 function SAFE() {
     var sf = this;
 
@@ -2370,16 +2371,8 @@ function SAFE() {
     }
     sf.path = "/";
     sf.previous_url = document.referrer;
-    sf.url_changed_callback = function(url) {};
-    sf.transition_page_callback = function(new_page, old_page) {
-        return false
-    };
-    sf.pre_load_callback = function(class_name, parameters, url, wildcard_contents) {
-        return null
-    };
     sf.load_page_class = null;
     sf.loading_page = null;
-    sf.on_resize = function(resize_obj) {};
     sf.scroll_bar_width_value = -1;
 
     sf.element = $("<div />");
@@ -2409,6 +2402,28 @@ SAFE.prototype.extend = function(sub, sup) {
     sub.superClass = sup.prototype;
 }
 
+SAFE.prototype.url_changed = function(url) {
+    var sf = this;
+
+};
+
+SAFE.prototype.on_resize = function(resize_obj) {
+    var sf = this;
+    
+};
+
+SAFE.prototype.pre_load = function(class_name, parameters, url, wildcard_contents) {
+    var sf = this;
+
+    return null
+};
+
+SAFE.prototype.transition_page = function(new_page, old_page){
+    var sf = this;
+
+    return false;
+}
+
 SAFE.prototype.parse_query_string = function(query_string) {
     var query_split = query_string.split('&');
     var params = {};
@@ -2435,19 +2450,33 @@ SAFE.prototype.build_query_string = function(params) {
     return query_string;
 }
 
-SAFE.prototype.use_page_class = function(class_name, parameters, url, wildcard_contents) {
+SAFE.prototype.scroll_to_anchor = function(anchor){
     var sf = this;
 
+    if(anchor){
+        $(window).scrollTop(anchor.offset().top);
+    }
+}
+
+SAFE.prototype.use_page_class = function(details){
+    var sf = this;
+
+    var class_name = details.class_name;
+    var parameters = details.parameters;
+    var url = details.url;
+    var wildcard_contents = details.wildcard_contents;
+
+    var class_name;
     if((typeof class_name)==='string'){
-        //This is then name of a class, rather than the class itself
-        
+        //This is the name of a class, rather than the class itself
+
         var found_class = window[class_name];
         if(found_class===undefined){
             if(sf.load_page_class!==null){
 
                 var load_class = class_name;
 
-                setTimeout(function(){
+                // setTimeout(function(){
 
                     sf.load_page_class(load_class,function(class_def, class_css){
                         var css = document.createElement("style");
@@ -2458,10 +2487,10 @@ SAFE.prototype.use_page_class = function(class_name, parameters, url, wildcard_c
                             css.appendChild(document.createTextNode(class_css));
                         }
                         $("head")[0].appendChild(css);
-                        sf.use_page_class(class_def,parameters,url,wildcard_contents);
+                        sf.use_page_class(details);
                     });
 
-                },1000);
+                // },1000);
 
                 if(sf.loading_page!==null){
                     class_name = sf.loading_page;
@@ -2483,7 +2512,7 @@ SAFE.prototype.use_page_class = function(class_name, parameters, url, wildcard_c
             if (sf.current_page != null) {
                 sf.current_page.remove();
                 sf.current_page = null;
-                sf.previous_class_name = null;
+                sf.previous_class = null;
             }
             sf.element.text("No 404 page set. Use Site.set_no_page_found_class(class_name) to set one.");
             return;
@@ -2492,9 +2521,12 @@ SAFE.prototype.use_page_class = function(class_name, parameters, url, wildcard_c
         }
     }
 
-    if (class_name == sf.previous_class_name) {
+    if (class_name === sf.previous_class) {
         var new_url_response = sf.current_page.new_url(parameters, url, wildcard_contents);
         if (new_url_response != "NOT_SET") {
+            if(details.anchor){
+                sf.scroll_to_anchor($("a[name*='"+details.anchor+"']"));
+            }
             return;
         }
     }
@@ -2506,18 +2538,19 @@ SAFE.prototype.use_page_class = function(class_name, parameters, url, wildcard_c
     }
 
 
-    var pre_load_response = sf.pre_load_callback(class_name, parameters, url, wildcard_contents);
+    var pre_load_response = sf.pre_load(class_name, parameters, url, wildcard_contents);
 
     if (pre_load_response != null) {
         sf.load_url(pre_load_response, true);
         return;
     }
 
-    sf.current_page = new_page = new class_name(parameters, url, wildcard_contents, old_page);
-    sf.previous_class_name = class_name;
+    var new_page = new class_name(parameters, url, wildcard_contents, old_page);
+    sf.current_page = new_page;
+    sf.previous_class = class_name;
 
 
-    var transition_response = sf.transition_page_callback(sf.current_page, old_page);
+    var transition_response = sf.transition_page(sf.current_page, old_page);
 
     if (transition_response === true) {
         //The callback handled the page switching
@@ -2529,6 +2562,10 @@ SAFE.prototype.use_page_class = function(class_name, parameters, url, wildcard_c
 
     //Call the global resize function to correctly position everything
     sf.resize();
+
+    if(details.anchor){
+        sf.scroll_to_anchor($("a[name*='"+details.anchor+"']"));
+    }
 }
 
 SAFE.prototype.set_no_page_found_class = function(class_name) {
@@ -2633,27 +2670,22 @@ SAFE.prototype.init = function(desired_url) {
 SAFE.prototype.reload_page = function() {
     var sf = this;
 
-    sf.use_page_class(
-        sf.current_class_and_details.class_name,
-        sf.current_class_and_details.parameters,
-        sf.current_class_and_details.url,
-        sf.current_class_and_details.wildcard_contents
-    );
+    sf.use_page_class(sf.current_class_and_details);
 }
 
-SAFE.prototype.replace_current_url = function(new_url, call_url_changed_callback) {
+SAFE.prototype.replace_current_url = function(new_url, call_url_changed) {
     /* Change the current url without loading any new page or providing a new url to the current page. This function is rarely useful and should be avoided in most circumstances. */
     var sf = this;
 
-    call_url_changed_callback = (typeof call_url_changed_callback)!="undefined" ? call_url_changed_callback : true;
+    call_url_changed = (typeof call_url_changed)!="undefined" ? call_url_changed: true;
 
     var previous_ignore_value = sf.ignore_next_url;
     sf.ignore_next_url = true;
     History.replaceState(null, "", Site.origin + new_url);
     sf.ignore_next_url = previous_ignore_value;
 
-    if(call_url_changed_callback){
-        sf.url_changed_callback(
+    if(call_url_changed){
+        sf.url_changed(
             window.location.toString(),
             window.location.pathname,
             window.location.toString().substring(Site.origin.length),
@@ -2706,12 +2738,16 @@ SAFE.prototype.get_class_and_details_for_url = function(url_with_parameters) {
 
     var parameters = {};
 
-    var url_split = url_with_parameters.split("?");
+    //Gets "anchors"
+    var split_by_hash = url_with_parameters.split("#");
+    var anchor = split_by_hash[1];
+
+    var url_split = split_by_hash[0].split("?");
     if (url_split.length > 1) {
         parameters = sf.parse_query_string(url_split[1]);
     }
 
-    url = url_split[0];
+    var url = url_split[0];
 
     if (url.length >= sf.origin.length) {
         if (url.substring(0, sf.origin.length) == sf.origin) {
@@ -2766,7 +2802,8 @@ SAFE.prototype.get_class_and_details_for_url = function(url_with_parameters) {
         'class_name': class_name,
         'parameters': parameters,
         'url': url,
-        'wildcard_contents': wildcard_contents
+        'wildcard_contents': wildcard_contents,
+        'anchor': anchor
     };
 }
 
@@ -2794,19 +2831,14 @@ SAFE.prototype.load_url = function(url_with_parameters, push_state) {
     sf.current_class_and_details = sf.get_class_and_details_for_url(url_with_parameters);
 
     if (sf.current_class_and_details.class_name != null) {
-        sf.use_page_class(
-            sf.current_class_and_details.class_name,
-            sf.current_class_and_details.parameters,
-            sf.current_class_and_details.url,
-            sf.current_class_and_details.wildcard_contents
-        );
+        sf.use_page_class(sf.current_class_and_details);
     } else {
         //Show page not found
         SAFE.console.error("Page not found for url (" + sf.current_class_and_details.url + "). The full url was (" + url_with_parameters + ")");
         sf.use_page_class(null);
     }
 
-    sf.url_changed_callback(
+    sf.url_changed(
         window.location.toString(),
         window.location.pathname,
         window.location.toString().substring(Site.origin.length),
@@ -2814,8 +2846,6 @@ SAFE.prototype.load_url = function(url_with_parameters, push_state) {
     );
 
     sf.initial_url = false;
-
-    sf.previous_class_name = sf.current_class_and_details.class_name;
 }
 
 var Site;
