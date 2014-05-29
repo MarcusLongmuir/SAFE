@@ -1,0 +1,8 @@
+{
+  "name": "safe",
+  "version": "0.0.1",
+  "dependencies": {
+ 	"history.js": "*"
+  },
+  "private": true
+}

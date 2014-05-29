@@ -1,4 +1,4 @@
-@import("jquery.history.js");
+@import("../bower_components/history.js/scripts/bundled-uncompressed/html5/jquery.history.js");
 @import("jquery.ajax_url.js");
 @import("jquery.tappable.js");
 @import("Page.js");
