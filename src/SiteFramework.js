@@ -1,6 +1,6 @@
 @import("../bower_components/history.js/scripts/bundled-uncompressed/html5/jquery.history.js");
 @import("jquery.ajax_url.js");
-@import("jquery.tappable.js");
+@import("jquery.tap.js");
 @import("Page.js");
 
 function SAFE() {
@@ -61,7 +61,7 @@ SAFE.prototype.on_resize = function(resize_obj) {
 SAFE.prototype.pre_load = function(class_name, parameters, url, wildcard_contents) {
     var sf = this;
 
-    return null
+    //Must return undefined (null shows 404)
 };
 
 SAFE.prototype.transition_page = function(new_page, old_page){
@@ -107,6 +107,10 @@ SAFE.prototype.scroll_to_anchor = function(anchor){
 SAFE.prototype.use_page_class = function(details){
     var sf = this;
 
+    if(!details){
+        details = {};
+    }
+
     var class_name = details.class_name;
     var parameters = details.parameters;
     var url = details.url;
@@ -122,21 +126,20 @@ SAFE.prototype.use_page_class = function(details){
 
                 var load_class = class_name;
 
-                // setTimeout(function(){
+                console.log(load_class.toString());
 
-                    sf.load_page_class(load_class,function(class_def, class_css){
-                        var css = document.createElement("style");
-                        css.type = "text/css";
-                        if (css.styleSheet){
-                            css.styleSheet.cssText = class_css;
-                        } else {
-                            css.appendChild(document.createTextNode(class_css));
-                        }
-                        $("head")[0].appendChild(css);
-                        sf.use_page_class(details);
-                    });
+                sf.load_page_class(load_class,function(class_def, class_css){
+                    var css = document.createElement("style");
+                    css.type = "text/css";
+                    if (css.styleSheet){
+                        css.styleSheet.cssText = class_css;
+                    } else {
+                        css.appendChild(document.createTextNode(class_css));
+                    }
+                    $("head")[0].appendChild(css);
+                    sf.use_page_class(details);
+                });
 
-                // },1000);
 
                 if(sf.loading_page!==null){
                     class_name = sf.loading_page;
@@ -160,7 +163,7 @@ SAFE.prototype.use_page_class = function(details){
                 sf.current_page = null;
                 sf.previous_class = null;
             }
-            sf.element.text("No 404 page set. Use Site.set_no_page_found_class(class_name) to set one.");
+            SAFE.console.error("No 404 page set. Use Site.set_no_page_found_class(class_name) to set one.");
             return;
         } else {
             class_name = sf.no_page_found_class;
@@ -186,8 +189,18 @@ SAFE.prototype.use_page_class = function(details){
 
     var pre_load_response = sf.pre_load(class_name, parameters, url, wildcard_contents);
 
-    if (pre_load_response != null) {
-        sf.load_url(pre_load_response, true);
+    if (pre_load_response !== undefined) {
+        if((typeof pre_load_response) === 'function'){
+            //Given a class
+        } else if(pre_load_response===null){
+            //Load the 404 page
+            details.class_name = null;
+            sf.use_page_class(details);
+            return;
+        } else {
+            //Load as URL
+            sf.load_url(pre_load_response, true);
+        }
         return;
     }
 
@@ -453,7 +466,6 @@ SAFE.prototype.get_class_and_details_for_url = function(url_with_parameters) {
     };
 }
 
-
 //url_with_parameters must be relative to domain (not origin)
 SAFE.prototype.load_url = function(url_with_parameters, push_state) {
     var sf = this;
@@ -473,6 +485,8 @@ SAFE.prototype.load_url = function(url_with_parameters, push_state) {
             sf.previous_url = full_url;
         }
     }
+
+    sf.current_url = full_url;
 
     sf.current_class_and_details = sf.get_class_and_details_for_url(url_with_parameters);
 
