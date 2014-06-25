@@ -2830,7 +2830,7 @@ SAFE.prototype.resize = function() {
     var window_width = $(window).outerWidth();
     var window_height = $(window).outerHeight();
 
-    var resize_obj = {
+    sf.resize_obj = {
         scroll_bar_width: sf.scroll_bar_width(),
         doc_width: doc_width,
         doc_height: doc_height,
@@ -2838,10 +2838,10 @@ SAFE.prototype.resize = function() {
         window_height: window_height
     }
 
-    sf.on_resize(resize_obj);
+    sf.on_resize(sf.resize_obj);
 
     if (sf.current_page != null) {
-        sf.current_page.resize(resize_obj);
+        sf.current_page.resize(sf.resize_obj);
     }
 }
 
