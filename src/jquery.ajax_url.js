@@ -11,7 +11,7 @@
                 if (on_trigger != null) {
                     on_trigger(event);
                 }
-                if (event.metaKey === true) {
+                if (event.originalEvent.metaKey === true) {
                     //Being opened in another tab
                 } else {
                     if (Site.history_state_supported) {

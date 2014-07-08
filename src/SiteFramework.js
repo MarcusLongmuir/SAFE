@@ -107,16 +107,10 @@ SAFE.prototype.scroll_to_anchor = function(anchor){
 SAFE.prototype.use_page_class = function(details){
     var sf = this;
 
-    if(!details){
-        details = {};
-    }
-
     var class_name = details.class_name;
-    var parameters = details.parameters;
-    var url = details.url;
-    var wildcard_contents = details.wildcard_contents;
 
     var class_name;
+    var class_obj;
     if((typeof class_name)==='string'){
         //This is the name of a class, rather than the class itself
 
@@ -125,8 +119,6 @@ SAFE.prototype.use_page_class = function(details){
             if(sf.load_page_class!==null){
 
                 var load_class = class_name;
-
-                console.log(load_class.toString());
 
                 sf.load_page_class(load_class,function(class_def, class_css){
                     var css = document.createElement("style");
@@ -137,26 +129,31 @@ SAFE.prototype.use_page_class = function(details){
                         css.appendChild(document.createTextNode(class_css));
                     }
                     $("head")[0].appendChild(css);
+
+                    //Re-add class_name because it will be removed
+                    details.class_name = class_name;
                     sf.use_page_class(details);
                 });
 
 
                 if(sf.loading_page!==null){
-                    class_name = sf.loading_page;
+                    class_obj = sf.loading_page;
                 } else {
                     return;
                 }
 
             } else {
                 SAFE.console.error("The requested class ("+class_name+") was not found and dynamic class loading is not enabled");
-                class_name = null;
+                class_obj = null;
             }
         } else {
-            class_name = found_class;
+            class_obj = found_class;
         }
+    } else {
+        class_obj = class_name;
     }
 
-    if (class_name == null) { //404
+    if (class_obj == null) { //404
         if (sf.no_page_found_class == null) {
             if (sf.current_page != null) {
                 sf.current_page.remove();
@@ -166,12 +163,12 @@ SAFE.prototype.use_page_class = function(details){
             SAFE.console.error("No 404 page set. Use Site.set_no_page_found_class(class_name) to set one.");
             return;
         } else {
-            class_name = sf.no_page_found_class;
+            class_obj = sf.no_page_found_class;
         }
     }
 
-    if (class_name === sf.previous_class) {
-        var new_url_response = sf.current_page.new_url(parameters, url, wildcard_contents);
+    if (class_obj === sf.previous_class) {
+        var new_url_response = sf.current_page.new_url(details);
         if (new_url_response != "NOT_SET") {
             if(details.anchor){
                 sf.scroll_to_anchor($("a[name*='"+details.anchor+"']"));
@@ -186,8 +183,7 @@ SAFE.prototype.use_page_class = function(details){
         old_page = sf.current_page;
     }
 
-
-    var pre_load_response = sf.pre_load(class_name, parameters, url, wildcard_contents);
+    var pre_load_response = sf.pre_load(class_obj, details, old_page);
 
     if (pre_load_response !== undefined) {
         if((typeof pre_load_response) === 'function'){
@@ -204,10 +200,13 @@ SAFE.prototype.use_page_class = function(details){
         return;
     }
 
-    var new_page = new class_name(parameters, url, wildcard_contents, old_page);
-    sf.current_page = new_page;
-    sf.previous_class = class_name;
 
+    //Would create a circular structure if details were output via JSON.stringify
+    delete details.class_name;
+
+    var new_page = new class_obj(details, old_page);
+    sf.current_page = new_page;
+    sf.previous_class = class_obj;
 
     var transition_response = sf.transition_page(sf.current_page, old_page);
 
@@ -229,7 +228,12 @@ SAFE.prototype.use_page_class = function(details){
 
 SAFE.prototype.set_no_page_found_class = function(class_name) {
     var sf = this;
+    sf.no_page_found_class = class_name;
+}
 
+//Alias for set_no_page_found_class
+SAFE.prototype.set_404 = function(class_name) {
+    var sf = this;
     sf.no_page_found_class = class_name;
 }
 
@@ -376,10 +380,10 @@ SAFE.prototype.scroll_bar_width = function() {
     return sf.scroll_bar_width_value;
 }
 
-SAFE.prototype.get_class_for_url = function(url_with_parameters) {
+SAFE.prototype.get_class_for_url = function(url_with_query) {
     var sf = this;
 
-    var class_and_details = sf.get_class_and_details_for_url(url_with_parameters);
+    var class_and_details = sf.get_class_and_details_for_url(url_with_query);
 
     var class_def = window[class_and_details.class_name];
     if(class_def===undefined){
@@ -392,18 +396,18 @@ SAFE.prototype.get_class_for_url = function(url_with_parameters) {
     return null;
 }
 
-SAFE.prototype.get_class_and_details_for_url = function(url_with_parameters) {
+SAFE.prototype.get_class_and_details_for_url = function(url_with_query) {
     var sf = this;
 
-    var parameters = {};
+    var query_params = {};
 
     //Gets "anchors"
-    var split_by_hash = url_with_parameters.split("#");
+    var split_by_hash = url_with_query.split("#");
     var anchor = split_by_hash[1];
 
     var url_split = split_by_hash[0].split("?");
     if (url_split.length > 1) {
-        parameters = sf.parse_query_string(url_split[1]);
+        query_params = sf.parse_query_string(url_split[1]);
     }
 
     var url = url_split[0];
@@ -429,48 +433,82 @@ SAFE.prototype.get_class_and_details_for_url = function(url_with_parameters) {
             effective_path.length > url.length ||
             url.substring(0, effective_path.length) != effective_path
         ) {
-            SAFE.console.error("The requested url (" + url_with_parameters + ") was not relative to the domain/origin and within the Site.path scope");
+            SAFE.console.error("The requested url (" + url_with_query + ") was not relative to the domain/origin and within the Site.path scope");
             return null;
         }
         url = url.substring(effective_path.length - 1);
     }
 
-    var class_name = sf.map[url];
-    var wildcard_contents = null;
 
-    var wildcard_contents = null;
-    if (class_name == null) {
-        //Loop through the available names to check for wildcard paths
-        for (var map_url in sf.map) {
+    var url_parts = url.split("/");
+    if(url_parts[url_parts.length-1]===""){
+        //Remove empty last
+        url_parts.pop();
+    }
 
-            var index_of_wildcard = map_url.indexOf("*");
-            if (index_of_wildcard != -1) {
-                var url_substring = map_url.substring(0, index_of_wildcard);
-                if (url_substring.length < url.length) {
-                    if (url_substring == url.substring(0, url_substring.length)) {
-                        class_name = sf.map[map_url];
-                        wildcard_contents = url.substring(url_substring.length);
-                        url = url_substring + "*";
-                    }
-                }
-            }
+    //Defaults
+    var class_name = null;
+    var url_params = {};
+    var url_pattern = null;
+
+    //Loop through the available names to check for wildcard paths
+    for (var map_url in sf.map) {
+
+        var this_url_params = {};
+
+        var map_url_parts = map_url.split("/");
+        if(map_url_parts[map_url_parts.length-1]===""){
+            //Remove empty last
+            map_url_parts.pop();
         }
+
+        if(map_url_parts.length>url_parts.length){
+            continue;
+        }
+
+        var is_valid = true;
+        var substring_start = 0;
+        for(var i = 0; i < map_url_parts.length; i++){
+            var map_part = map_url_parts[i];
+            var part = url_parts[i];
+            if(map_part[0]===":"){
+                var param_name = map_part.substring(1);
+                this_url_params[param_name] = part;
+            } else if(map_part[0]==="*"){
+                is_valid = true;
+                this_url_params["*"] = url.substring(substring_start);
+                break;
+            } else if(map_part!==part) {
+                is_valid = false;
+                break;
+            }
+            substring_start+=part.length+1;
+        }
+        if(!is_valid){
+            continue;
+        }
+
+        class_name = sf.map[map_url];
+        url_params = this_url_params;
+        url_pattern = map_url;
     }
 
     return {
         'class_name': class_name,
-        'parameters': parameters,
+        'query': query_params,
         'url': url,
-        'wildcard_contents': wildcard_contents,
+        'url_pattern': url_pattern,
+        'url_with_query': url_with_query.substring(effective_path.length-1),
+        'params': url_params,
         'anchor': anchor
     };
 }
 
-//url_with_parameters must be relative to domain (not origin)
-SAFE.prototype.load_url = function(url_with_parameters, push_state) {
+//url_with_query must be relative to domain (not origin)
+SAFE.prototype.load_url = function(url_with_query, push_state) {
     var sf = this;
 
-    var full_url = Site.origin + url_with_parameters;
+    var full_url = Site.origin + url_with_query;
 
     if (!sf.history_state_supported) {
         var target = encodeURI(full_url);
@@ -488,15 +526,12 @@ SAFE.prototype.load_url = function(url_with_parameters, push_state) {
 
     sf.current_url = full_url;
 
-    sf.current_class_and_details = sf.get_class_and_details_for_url(url_with_parameters);
+    sf.current_class_and_details = sf.get_class_and_details_for_url(url_with_query);
 
-    if (sf.current_class_and_details.class_name != null) {
-        sf.use_page_class(sf.current_class_and_details);
-    } else {
-        //Show page not found
-        SAFE.console.error("Page not found for url (" + sf.current_class_and_details.url + "). The full url was (" + url_with_parameters + ")");
-        sf.use_page_class(null);
+    if (sf.current_class_and_details.class_name == null) {
+        SAFE.console.error("Page not found for url (" + sf.current_class_and_details.url + "). The full url was (" + url_with_query + ")");
     }
+    sf.use_page_class(sf.current_class_and_details);
 
     sf.url_changed(
         window.location.toString(),
