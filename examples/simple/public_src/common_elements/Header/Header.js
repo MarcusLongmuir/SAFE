@@ -10,8 +10,8 @@ function Header() {
         .attr("href", "/pagetwo/")
         .ajax_url()
     ).append(
-        $("<a />").text("WildcardPage ")
-        .attr("href", "/wildcard/header_link")
+        $("<a />").text("ParamPage ")
+        .attr("href", "/param_page/came_from_header")
         .ajax_url()
     ).append(
         $("<span />").text("This header changes color only when the page is reloaded")

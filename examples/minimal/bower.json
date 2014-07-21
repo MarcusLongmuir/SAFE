@@ -1,0 +1,9 @@
+{
+  "name": "safe-example-simple",
+  "version": "0.0.1",
+  "devDependencies": {
+    "jquery": "1.11.1",
+    "safe" : "*"
+  },
+  "private": true
+}

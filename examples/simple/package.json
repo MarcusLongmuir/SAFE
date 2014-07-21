@@ -1,12 +1,18 @@
 {
-    "name": "safe",
+    "name": "safe-example-simple",
     "private": true,
     "dependencies": {
         "express": "*"
     },
     "devDependencies": {
-        "grunt": "~0.4.0",
-        "grunt-contrib-less": "*",
-        "matchdep": "*"
+        "bower": "*",
+        "gulp-nodemon" : "*",
+        "gulp-util": "^2.2.14",
+        "gulp-imports" : "git+ssh://git@github.com/MarcusLongmuir/gulp-imports.git",
+        "gulp": "^3.6.1",
+        "gulp-less": "^1.2.3",
+        "gulp-concat": "^2.2.0",
+        "gulp-watch": "^0.6.2",
+        "gulp-plumber": "^0.6.1"
     }
 }

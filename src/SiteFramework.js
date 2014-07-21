@@ -111,6 +111,7 @@ SAFE.prototype.use_page_class = function(details){
 
     var class_name;
     var class_obj;
+    sf.current_details = details;
     if((typeof class_name)==='string'){
         //This is the name of a class, rather than the class itself
 
@@ -132,7 +133,9 @@ SAFE.prototype.use_page_class = function(details){
 
                     //Re-add class_name because it will be removed
                     details.class_name = class_name;
-                    sf.use_page_class(details);
+                    if(sf.current_details===details){
+                        sf.use_page_class(details);
+                    }
                 });
 
 
@@ -363,6 +366,15 @@ SAFE.prototype.add_url = function(url, class_name) {
     sf.map[url] = class_name;
 }
 
+SAFE.prototype.add_url_map = function(url_map, class_name) {
+    var sf = this;
+
+    for(var url in url_map){
+        var class_name = url_map[url];
+        sf.add_url(url, class_name);
+    }
+}
+
 SAFE.prototype.scroll_bar_width = function() {
     var sf = this;
 
@@ -446,6 +458,11 @@ SAFE.prototype.get_class_and_details_for_url = function(url_with_query) {
         url_parts.pop();
     }
 
+    if(url_parts[0]===""){
+        //Remove empty first
+        url_parts.shift();
+    }
+
     //Defaults
     var class_name = null;
     var url_params = {};
@@ -462,12 +479,20 @@ SAFE.prototype.get_class_and_details_for_url = function(url_with_query) {
             map_url_parts.pop();
         }
 
+
+        var substring_start = 0;
+        if(map_url_parts[0]===""){
+            //Remove empty first
+            map_url_parts.shift();
+            substring_start++;
+        }
+
         if(map_url_parts.length>url_parts.length){
             continue;
         }
 
         var is_valid = true;
-        var substring_start = 0;
+        var had_wildcard = false;
         for(var i = 0; i < map_url_parts.length; i++){
             var map_part = map_url_parts[i];
             var part = url_parts[i];
@@ -476,6 +501,8 @@ SAFE.prototype.get_class_and_details_for_url = function(url_with_query) {
                 this_url_params[param_name] = part;
             } else if(map_part[0]==="*"){
                 is_valid = true;
+                had_wildcard = true;
+                console.log(url, substring_start, url.substring(substring_start));
                 this_url_params["*"] = url.substring(substring_start);
                 break;
             } else if(map_part!==part) {
@@ -483,6 +510,9 @@ SAFE.prototype.get_class_and_details_for_url = function(url_with_query) {
                 break;
             }
             substring_start+=part.length+1;
+        }
+        if(!had_wildcard && url_parts.length!==map_url_parts.length){
+            is_valid = false;
         }
         if(!is_valid){
             continue;

@@ -1,6 +1,6 @@
 Site.extend(HomePage, Page);
 
-function HomePage(parameters, url) {
+function HomePage(req) {
     var page = this;
 
     HomePage.superConstructor.call(this);
@@ -13,8 +13,8 @@ function HomePage(parameters, url) {
     ).append(
         $("<div />") //Just for break
     ).append(
-        $("<a href='/wildcard/any_string_here' />")
-        .text("Link to wildcard page")
+        $("<a href='/param_page/from_homepage' />")
+        .text("Link to /param_page/from_homepage")
         .ajax_url()
     ).append(
         $("<br />")
@@ -23,7 +23,6 @@ function HomePage(parameters, url) {
     )
 }
 Site.add_url("/", HomePage);
-Site.add_url("/index.html", HomePage);
 
 HomePage.prototype.get_title = function() {
     var page = this;

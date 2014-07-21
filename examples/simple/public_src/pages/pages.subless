@@ -1,4 +1,4 @@
 @import "HomePage/HomePage.subless";
 @import "PageTwo/PageTwo.subless";
-@import "WildcardPage/WildcardPage.subless";
+@import "ParamPage/ParamPage.subless";
 @import "NotFoundPage/NotFoundPage.subless";

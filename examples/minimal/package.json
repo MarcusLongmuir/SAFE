@@ -1,0 +1,7 @@
+{
+    "name": "safe-example-minimal",
+    "private": true,
+    "dependencies": {
+        "express": "*"
+    }
+}
