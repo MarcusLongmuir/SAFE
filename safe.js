@@ -2776,6 +2776,9 @@ SAFE.prototype.use_page_class = function(details){
     sf.current_page = new_page;
     sf.previous_class = class_obj;
 
+    //Call before page transition to give the opportunity to correctly size any page elements
+    sf.resize();
+
     var transition_response = sf.transition_page(sf.current_page, old_page);
 
     if (transition_response === true) {
