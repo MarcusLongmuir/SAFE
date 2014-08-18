@@ -297,8 +297,11 @@ SAFE.prototype.init = function(desired_url) {
     if (window.location.search != null) {
         path_name += window.location.search;
     }
+    if (window.location.hash != null) {
+        path_name += window.location.hash;
+    }
 
-    var current_url = decodeURIComponent(path_name);
+    var current_url = path_name;
     if (desired_url != null) {
         if (desired_url != current_url) {
             current_url = desired_url;
@@ -311,8 +314,6 @@ SAFE.prototype.init = function(desired_url) {
 
     if (sf.history_state_supported) {
 
-        History.replaceState(null, "", Site.origin + current_url);
-
         History.Adapter.bind(window, 'statechange', function() {
             if (sf.ignore_next_url) {
                 sf.ignore_next_url = false;
@@ -320,7 +321,7 @@ SAFE.prototype.init = function(desired_url) {
             }
             var state = History.getState();
             if (state != null) {
-                sf.load_url(decodeURIComponent(state.url), false);
+                sf.load_url(decodeURI(state.url), false);
             }
         });
     }
@@ -542,6 +543,8 @@ SAFE.prototype.load_url = function(url_with_query, push_state) {
     var sf = this;
 
     var full_url = Site.origin + url_with_query;
+
+    url_with_query = decodeURIComponent(url_with_query);
 
     if (!sf.history_state_supported) {
         var target = encodeURI(full_url);
