@@ -9,7 +9,7 @@ function SAFE() {
     Site = this;
     sf.debug = false;
     sf.initial_url = true;
-    sf.map = {};
+    sf.urls = {};
     sf.ignore_next_url = false;
     sf.origin = window.location.protocol + "//" + window.location.hostname;
     if (window.location.port != "") {
@@ -367,7 +367,7 @@ SAFE.prototype.replace_current_url = function(new_url, call_url_changed) {
 SAFE.prototype.add_url = function(url, class_name) {
     var sf = this;
 
-    sf.map[url] = class_name;
+    sf.urls.push([url,class_name]);
 }
 
 SAFE.prototype.add_url_map = function(url_map, class_name) {
@@ -473,7 +473,12 @@ SAFE.prototype.get_class_and_details_for_url = function(url_with_query) {
     var url_pattern = null;
 
     //Loop through the available names to check for wildcard paths
-    for (var map_url in sf.map) {
+    for (var i = 0; i < sf.urls.length; i++) {
+
+        var map_pair = sf.urls[i];
+
+        var map_url = map_pair[0];
+        var map_class_name = map_pair[1];
 
         var this_url_params = {};
 
@@ -522,9 +527,10 @@ SAFE.prototype.get_class_and_details_for_url = function(url_with_query) {
             continue;
         }
 
-        class_name = sf.map[map_url];
+        class_name = map_class_name;
         url_params = this_url_params;
         url_pattern = map_url;
+        break;
     }
 
     return {
