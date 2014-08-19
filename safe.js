@@ -2574,7 +2574,7 @@ function SAFE() {
     Site = this;
     sf.debug = false;
     sf.initial_url = true;
-    sf.urls = {};
+    sf.urls = [];
     sf.ignore_next_url = false;
     sf.origin = window.location.protocol + "//" + window.location.hostname;
     if (window.location.port != "") {
