@@ -3067,9 +3067,9 @@ SAFE.prototype.get_class_and_details_for_url = function(url_with_query) {
 
         var is_valid = true;
         var had_wildcard = false;
-        for(var i = 0; i < map_url_parts.length; i++){
-            var map_part = map_url_parts[i];
-            var part = url_parts[i];
+        for(var k = 0; k < map_url_parts.length; k++){
+            var map_part = map_url_parts[k];
+            var part = url_parts[k];
             if(map_part[0]===":"){
                 var param_name = map_part.substring(1);
                 this_url_params[param_name] = part;
