@@ -2768,11 +2768,12 @@ SAFE.prototype.use_page_class = function(details){
         return;
     }
 
+    var details_for_page = JSON.parse(JSON.stringify(details));
 
     //Would create a circular structure if details were output via JSON.stringify
-    delete details.class_name;
+    delete details_for_page.class_name;
 
-    var new_page = new class_obj(details, old_page);
+    var new_page = new class_obj(details_for_page, old_page);
     sf.current_page = new_page;
     sf.previous_class = class_obj;
 
@@ -3076,7 +3077,6 @@ SAFE.prototype.get_class_and_details_for_url = function(url_with_query) {
             } else if(map_part[0]==="*"){
                 is_valid = true;
                 had_wildcard = true;
-                console.log(url, substring_start, url.substring(substring_start));
                 this_url_params["*"] = url.substring(substring_start);
                 break;
             } else if(map_part!==part) {
