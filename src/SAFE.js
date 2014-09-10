@@ -554,7 +554,7 @@ SAFE.prototype.load_url = function(url_with_query, push_state) {
 
     if (!sf.history_state_supported) {
         var target = encodeURI(full_url);
-        if (window.location != target) {
+        if (window.location != target && window.location != full_url) {
             window.location = target;
             return;
         }

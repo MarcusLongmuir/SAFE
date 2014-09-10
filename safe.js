@@ -2141,6 +2141,9 @@
                             event.preventDefault();
                             Site.load_url($(element).attr("href"), true);
                         }
+                    } else {
+                        window.location = $(element).attr("href");
+                        event.preventDefault();
                     }
                 }
             } else { //custom_trigger_return==false
@@ -3119,7 +3122,7 @@ SAFE.prototype.load_url = function(url_with_query, push_state) {
 
     if (!sf.history_state_supported) {
         var target = encodeURI(full_url);
-        if (window.location != target) {
+        if (window.location != target && window.location != full_url) {
             window.location = target;
             return;
         }

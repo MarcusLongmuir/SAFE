@@ -9,6 +9,7 @@
 		"gulp": "^3.6.1",
 		"gulp-uglify": "^0.2.1",
 		"gulp-concat": "^2.2.0",
-		"gulp-watch": "^0.6.2"
+		"gulp-watch": "^0.6.2",
+		"sa-docs-to-json": "*"
 	}
 }
