@@ -1,0 +1,13 @@
+extend(MyPage, Page);
+function MyPage(req, previous_page){
+	var page = this;
+
+	MyPage.superConstructor.call(this);
+
+	page.element.addClass("my_page").append(
+		$("<div /">).text("This is my page!")
+	)
+}
+
+Site.add_url("/mypage/",MyPage);
+Site.add_url("/mypage/:tag",MyPage);

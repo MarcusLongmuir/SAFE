@@ -1,0 +1,11 @@
+{
+	"params": {
+		"my_param": 3
+	}
+	"query": {
+		"tag": "graphics"
+	}
+	"url": "/mypage/graphics",
+	"url_with_query": "/mypage/graphics?my_param=3",
+	"url_pattern": "/mypage/:tag"
+}

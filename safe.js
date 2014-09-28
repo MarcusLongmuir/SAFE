@@ -93,7 +93,7 @@
 		console = window.console||undefined, // Prevent a JSLint complain
 		document = window.document, // Make sure we are using the correct document
 		navigator = window.navigator, // Make sure we are using the correct navigator
-		sessionStorage = false, // sessionStorage
+		sessionStorage = window.sessionStorage||false, // sessionStorage
 		setTimeout = window.setTimeout,
 		clearTimeout = window.clearTimeout,
 		setInterval = window.setInterval,
@@ -104,7 +104,6 @@
 		history = window.history; // Old History Object
 
 	try {
-		sessionStorage = window.sessionStorage; // This will throw an exception in some browsers when cookies/localStorage are explicitly disabled (i.e. Chrome)
 		sessionStorage.setItem('TEST', '1');
 		sessionStorage.removeItem('TEST');
 	} catch(e) {
@@ -2124,16 +2123,17 @@
 (function($) {
     $.fn.ajax_url = function(custom_trigger, on_trigger) {
         var element = this;
-        element.tappable(function(event) {
+        element.on('tap',function(event) {
             var custom_trigger_return = null;
             if (custom_trigger != null) {
                 custom_trigger_return = custom_trigger(event);
             }
             if (custom_trigger_return == null || custom_trigger_return === true) {
+                //Navigate to the new page
                 if (on_trigger != null) {
                     on_trigger(event);
                 }
-                if (event.metaKey === true) {
+                if (event.originalEvent.metaKey === true) {
                     //Being opened in another tab
                 } else {
                     if (Site.history_state_supported) {
@@ -2141,6 +2141,9 @@
                             event.preventDefault();
                             Site.load_url($(element).attr("href"), true);
                         }
+                    } else {
+                        window.location = $(element).attr("href");
+                        event.preventDefault();
                     }
                 }
             } else { //custom_trigger_return==false
@@ -2151,192 +2154,403 @@
         return element;
     };
 })(jQuery);
-//Modified from https://github.com/aanand/jquery.tappable.js
-
-/*
- * jquery.tappable.js version 0.2
+/**
+ * @fileOverview
+ * Copyright (c) 2013 Aaron Gloege
  *
- * More responsive (iOS-like) touch behaviour for buttons and other 'tappable' UI
- * elements, instead of Mobile Safari's 300ms delay and ugly grey overlay:
+ * Permission is hereby granted, free of charge, to any person
+ * obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without restriction,
+ * including without limitation the rights to use, copy, modify, merge,
+ * publish, distribute, sublicense, and/or sell copies of the Software,
+ * and to permit persons to whom the Software is furnished to do so,
+ * subject to the following conditions:
  *
- *  - A 'touched' class is added to the element as soon as it is tapped (or, in
- *    the case of a "long tap" - when the user keeps their finger down for a
- *    moment - after a specified delay).
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
  *
- *  - The supplied callback is called as soon as the user lifts their finger.
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+ * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+ * HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+ * WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE
+ * OR OTHER DEALINGS IN THE SOFTWARE.
  *
- *  - The class is removed, and firing of the callback cancelled, if the user moves
- *    their finger (though this can be disabled).
+ * jQuery Tap Plugin
+ * Using the tap event, this plugin will properly simulate a click event
+ * in touch browsers using touch events, and on non-touch browsers,
+ * click will automatically be used instead.
  *
- *  - If the browser doesn't support touch events, it falls back to click events.
- *
- * More detailed explanation of behaviour and background:
- * http://aanandprasad.com/articles/jquery-tappable/
- *
- * See it in action here: http://nnnnext.com
- *
- * I recommend that you add a `-webkit-tap-highlight-color: rgba(0,0,0,0)`
- * style rule to any elements you wish to make tappable, to hide the ugly grey
- * click overlay.
- *
- * Tested on iOS 4.3 and some version of Android, I don't know. Leave me alone.
- *
- * Basic usage:
- *
- *   $(element).tappable(function() { console.log("Hello World!") })
- *
- * Advanced usage:
- *
- *   $(element).tappable({
- *     callback:     function() { console.log("Hello World!") },
- *     cancelOnMove: false,
- *     touchDelay:   150,
- *     onlyIf:       function(el) { return $(el).hasClass('enabled') }
- *   })
- *
- * Options:
- *
- *   cancelOnMove: If truthy, then as soon as the user moves their finger, the
- *                 'touched' class is removed from the element. When they lift
- *                 their finger, the callback will *not* be fired. Defaults to
- *                 true.
- *
- *   touchDelay:   Time to wait (ms) before adding the 'touched' class when the
- *                 user performs a "long tap". Best employed on elements that the
- *                 user is likely to touch while scrolling. Around 150 will work
- *                 well. Defaults to 0.
- *   
- *   onlyIf:       Function to run as soon as the user touches the element, to
- *                 determine whether to do anything. If it returns a falsy value,
- *                 the 'touched' class will not be added and the callback will
- *                 not be fired.
- *
+ * @author Aaron Gloege
+ * @version 1.1.0
  */
+(function(document, $) {
+    'use strict';
 
-(function($) {
-  var touchSupported = ('ontouchstart' in window);
+    /**
+     * Event namespace
+     *
+     * @type String
+     * @final
+     */
+    var HELPER_NAMESPACE = '._tap';
 
-  $.fn.tappable = function(options) {
-    var cancelOnMove = true,
-        onlyIf = function() { return true; },
-        touchDelay = 0,
-        callback;
+    /**
+     * Event namespace
+     *
+     * @type String
+     * @final
+     */
+    var HELPER_ACTIVE_NAMESPACE = '._tapActive';
 
-    switch(typeof options) {
-      case 'function':
-        callback = options;
-        break;
-      case 'object':
-        callback = options.callback;
+    /**
+     * Event name
+     *
+     * @type String
+     * @final
+     */
+    var EVENT_NAME = 'tap';
 
-        if (typeof options.cancelOnMove != 'undefined') {
-          cancelOnMove = options.cancelOnMove;
-        }
+    /**
+     * Event variables to copy to touches
+     *
+     * @type String[]
+     * @final
+     */
+    var EVENT_VARIABLES = 'clientX clientY screenX screenY pageX pageY'.split(' ');
 
-        if (typeof options.onlyIf != 'undefined') {
-          onlyIf = options.onlyIf;
-        }
+    /**
+     * jQuery body object
+     *
+     * @type jQuery
+     */
+    var $BODY;
 
-        if (typeof options.touchDelay != 'undefined') {
-          touchDelay = options.touchDelay;
-        }
+    /**
+     * Last canceled tap event
+     *
+     * @type jQuery.Event
+     * @private
+     */
+    var _lastTap;
 
-        break;
-      default:
-        break;
-    }
+    /**
+     * Last touchstart event
+     *
+     * @type jQuery.Event
+     * @private
+     */
+    var _lastTouch;
 
-    var fireCallback = function(el, event) {
-      if (typeof callback == 'function' && onlyIf(el)) {
-        callback.call(el, event);
-        event.preventDefault();
-        event.stopPropagation();
-      }
+    /**
+     * Object for tracking current touch
+     *
+     * @type Object
+     * @static
+     */
+    var TOUCH_VALUES = {
+
+        /**
+         * Number of touches currently active on touchstart
+         *
+         * @property count
+         * @type Number
+         */
+        count: 0,
+
+        /**
+         * touchstart/mousedown jQuery.Event object
+         *
+         * @property event
+         * @type jQuery.Event
+         */
+        event: 0
+
     };
 
-    if (touchSupported) {
-      this.unbind('touchstart');
-      this.bind('touchstart', function(event) {
-        var el = this;
+    /**
+     * Create a new event from the original event
+     * Copy over EVENT_VARIABLES from the original jQuery.Event
+     *
+     * @param {String} type
+     * @param {jQuery.Event} e
+     * @return {jQuery.Event}
+     * @private
+     */
+    var _createEvent = function(type, e) {
+        var originalEvent = e.originalEvent;
+        var event = $.Event(originalEvent);
 
-        if (onlyIf(this)) {
-          $(el).addClass('touch-started');
+        event.type = type;
 
-          window.setTimeout(function() {
-            if ($(el).hasClass('touch-started')) {
-              $(el).addClass('touched');
+        var i = 0;
+        var length = EVENT_VARIABLES.length;
+
+        for (; i < length; i++) {
+            event[EVENT_VARIABLES[i]] = e[EVENT_VARIABLES[i]];
+        }
+
+        return event;
+    };
+
+    /**
+     * Determine if a valid tap event
+     *
+     * @param {jQuery.Event} e
+     * @return {Boolean}
+     * @private
+     */
+    var _isTap = function(e) {
+        if (e.isTrigger) {
+            return false;
+        }
+
+        var startEvent = TOUCH_VALUES.event;
+        var xDelta = Math.abs(e.pageX - startEvent.pageX);
+        var yDelta = Math.abs(e.pageY - startEvent.pageY);
+        var delta = Math.max(xDelta, yDelta);
+
+        return (
+            e.timeStamp - startEvent.timeStamp < $.tap.TIME_DELTA &&
+            delta < $.tap.POSITION_DELTA &&
+            (!startEvent.touches || TOUCH_VALUES.count === 1) &&
+            Tap.isTracking
+        );
+    };
+
+    /**
+     * Determine if mousedown event was emulated from the last touchstart event
+     *
+     * @function
+     * @param {jQuery.Event} e
+     * @returns {Boolean}
+     * @private
+     */
+    var _isEmulated = function(e) {
+        if (!_lastTouch) {
+            return false;
+        }
+
+        var xDelta = Math.abs(e.pageX - _lastTouch.pageX);
+        var yDelta = Math.abs(e.pageY - _lastTouch.pageY);
+        var delta = Math.max(xDelta, yDelta);
+
+        return (
+            Math.abs(e.timeStamp - _lastTouch.timeStamp) < 750 &&
+            delta < $.tap.POSITION_DELTA
+        );
+    };
+
+    /**
+     * Normalize touch events with data from first touch in the jQuery.Event
+     *
+     * This could be done using the `jQuery.fixHook` api, but to avoid conflicts
+     * with other libraries that might already have applied a fix hook, this
+     * approach is used instead.
+     *
+     * @param {jQuery.Event} event
+     * @private
+     */
+    var _normalizeEvent = function(event) {
+        if (event.type.indexOf('touch') === 0) {
+            event.touches = event.originalEvent.changedTouches;
+            var touch = event.touches[0];
+
+            var i = 0;
+            var length = EVENT_VARIABLES.length;
+
+            for (; i < length; i++) {
+                event[EVENT_VARIABLES[i]] = touch[EVENT_VARIABLES[i]];
             }
-          }, touchDelay);
         }
 
-        return true;
-      });
+        // Normalize timestamp
+        event.timeStamp = Date.now ? Date.now() : +new Date();
+    };
 
-      this.unbind('touchend');
-      this.bind('touchend', function(event) {
-        var el = this;
+    /**
+     * Tap object that will track touch events and
+     * trigger the tap event when necessary
+     *
+     * @class Tap
+     * @static
+     */
+    var Tap = {
 
-        if ($(el).hasClass('touch-started')) {
-          $(el).removeClass('touched').removeClass('touch-started');
+        /**
+         * Flag to determine if touch events are currently enabled
+         *
+         * @property isEnabled
+         * @type Boolean
+         */
+        isEnabled: false,
 
-          if ( $(event.target).is('input[type="checkbox"]') ) {
-            $(event.target).attr('checked', !$(event.target).is(':checked') );
-        }
+        /**
+         * Are we currently tracking a tap event?
+         *
+         * @property isTracking
+         * @type Boolean
+         */
+        isTracking: false,
 
-          if ( $(event.target).is('label') ) {
-            var forId = $(event.target).attr('for');
-            var forEl = $('#' + forId);
-            if (forEl.is(':checkbox')) {
-              forEl.attr('checked', !forEl.is(':checked') );
+        /**
+         * Enable touch event listeners
+         *
+         * @method enable
+         */
+        enable: function() {
+            if (Tap.isEnabled) {
+                return;
+            }
+
+            Tap.isEnabled = true;
+
+            // Set body element
+            $BODY = $(document.body)
+                .on('touchstart' + HELPER_NAMESPACE, Tap.onStart)
+                .on('mousedown' + HELPER_NAMESPACE, Tap.onStart)
+                .on('click' + HELPER_NAMESPACE, Tap.onClick);
+        },
+
+        /**
+         * Disable touch event listeners
+         *
+         * @method disable
+         */
+        disable: function() {
+            if (!Tap.isEnabled) {
+                return;
+            }
+
+            Tap.isEnabled = false;
+
+            // unbind all events with namespace
+            $BODY.off(HELPER_NAMESPACE);
+        },
+
+        /**
+         * Store touch start values and target
+         *
+         * @method onTouchStart
+         * @param {jQuery.Event} e
+         */
+        onStart: function(e) {
+            if (e.isTrigger) {
+                return;
+            }
+
+            _normalizeEvent(e);
+
+            // Ignore non left mouse clicks
+            if ($.tap.LEFT_BUTTON_ONLY && !e.touches && e.which !== 1) {
+                return;
+            }
+
+            if (e.touches) {
+                TOUCH_VALUES.count = e.touches.length;
+            }
+
+            if (Tap.isTracking) {
+                return;
+            }
+
+            if (!e.touches && _isEmulated(e)) {
+                return;
+            }
+
+            Tap.isTracking = true;
+
+            TOUCH_VALUES.event = e;
+
+            if (e.touches) {
+                _lastTouch = e;
+                $BODY
+                    .on('touchend' + HELPER_NAMESPACE + HELPER_ACTIVE_NAMESPACE, Tap.onEnd)
+                    .on('touchcancel' + HELPER_NAMESPACE + HELPER_ACTIVE_NAMESPACE, Tap.onCancel);
             } else {
-              forEl.focus();
+                $BODY.on('mouseup' + HELPER_NAMESPACE + HELPER_ACTIVE_NAMESPACE, Tap.onEnd);
             }
-          }
+        },
 
-          if ( $(event.target).is('a') ) {
-              var target = $(event.target);
-              var href = target.attr('href');
+        /**
+         * If touch has not been canceled, create a
+         * tap event and trigger it on the target element
+         *
+         * @method onTouchEnd
+         * @param {jQuery.Event} e
+         */
+        onEnd: function(e) {
+            var event;
 
-              if (href !== '' && href !== 'javascript:;' && href.indexOf('#') < 0) {
-                  if (target.attr('target') === '_blank') {
-                      window.open(target.attr('href'));
-                  } else {
-                      window.location.href = target.attr('href');
-                  }
-                  return false;
-              }
-              
-          }
-          fireCallback(el, event);
+            if (e.isTrigger) {
+                return;
+            }
+
+            _normalizeEvent(e);
+
+            if (_isTap(e)) {
+                event = _createEvent(EVENT_NAME, e);
+                _lastTap = event;
+                $(TOUCH_VALUES.event.target).trigger(event);
+            }
+
+            // Cancel active tap tracking
+            Tap.onCancel(e);
+        },
+
+        /**
+         * Cancel tap and remove event listeners for active tap tracking
+         *
+         * @method onTouchCancel
+         * @param {jQuery.Event} e
+         */
+        onCancel: function(e) {
+            if (e && e.type === 'touchcancel') {
+                e.preventDefault();
+            }
+
+            Tap.isTracking = false;
+
+            $BODY.off(HELPER_ACTIVE_NAMESPACE);
+        },
+
+        /**
+         * If tap was canceled, cancel click event
+         *
+         * @method onClick
+         * @param {jQuery.Event} e
+         * @return {void|Boolean}
+         */
+        onClick: function(e) {
+            if (
+                !e.isTrigger &&
+                _lastTap &&
+                _lastTap.isDefaultPrevented() &&
+                _lastTap.target === e.target &&
+                _lastTap.pageX === e.pageX &&
+                _lastTap.pageY === e.pageY &&
+                e.timeStamp - _lastTap.timeStamp < 750
+            ) {
+                _lastTap = null;
+                return false;
+            }
         }
 
+    };
 
-        return true;
-      });
+    // Enable tab when document is ready
+    $(document).ready(Tap.enable);
 
-      this.unbind('click');
-      this.bind('click', function(event) {
-          event.preventDefault();
-      });
+    // Configurable options
+    $.tap = {
+        POSITION_DELTA: 10, // Max distance between touchstart and touchend to be considered a tap
+        TIME_DELTA: 400, // Max duration between touchstart and touchend to be considered a tap
+        LEFT_BUTTON_ONLY: true // Only accept left mouse button actions
+    };
 
-      if (cancelOnMove) {
-        this.unbind('touchmove');
-        this.bind('touchmove', function() {
-          $(this).removeClass('touched').removeClass('touch-started');
-        });
-      }
-    } else if (typeof callback == 'function') {
-      this.unbind('click');
-      this.bind('click', function(event) {
-        if (onlyIf(this)) {
-          callback.call(this, event);
-        }
-      });
-    }
-
-    return this;
-  };
-})(jQuery);
+}(document, jQuery));
 
 function Page() {
     var page = this;
@@ -2356,13 +2570,14 @@ Page.prototype.resize = function(resize_obj) {}
 Page.prototype.init = function() {}
 
 Page.prototype.remove = function() {}
+
 function SAFE() {
     var sf = this;
 
     Site = this;
     sf.debug = false;
     sf.initial_url = true;
-    sf.map = {};
+    sf.urls = [];
     sf.ignore_next_url = false;
     sf.origin = window.location.protocol + "//" + window.location.hostname;
     if (window.location.port != "") {
@@ -2370,14 +2585,8 @@ function SAFE() {
     }
     sf.path = "/";
     sf.previous_url = document.referrer;
-    sf.url_changed_callback = function(url) {};
-    sf.transition_page_callback = function(new_page, old_page) {
-        return false
-    };
-    sf.pre_load_callback = function(class_name, parameters, url, wildcard_contents) {
-        return null
-    };
-    sf.on_resize = function(resize_obj) {};
+    sf.load_page_class = null;
+    sf.loading_page = null;
     sf.scroll_bar_width_value = -1;
 
     sf.element = $("<div />");
@@ -2407,6 +2616,28 @@ SAFE.prototype.extend = function(sub, sup) {
     sub.superClass = sup.prototype;
 }
 
+SAFE.prototype.url_changed = function(url) {
+    var sf = this;
+
+};
+
+SAFE.prototype.on_resize = function(resize_obj) {
+    var sf = this;
+    
+};
+
+SAFE.prototype.pre_load = function(class_name, parameters, url, wildcard_contents) {
+    var sf = this;
+
+    //Must return undefined (null shows 404)
+};
+
+SAFE.prototype.transition_page = function(new_page, old_page){
+    var sf = this;
+
+    return false;
+}
+
 SAFE.prototype.parse_query_string = function(query_string) {
     var query_split = query_string.split('&');
     var params = {};
@@ -2433,26 +2664,86 @@ SAFE.prototype.build_query_string = function(params) {
     return query_string;
 }
 
-SAFE.prototype.use_page_class = function(class_name, parameters, url, wildcard_contents) {
+SAFE.prototype.scroll_to_anchor = function(anchor){
     var sf = this;
 
-    if (class_name == null) { //404
+    if(anchor[0]!==undefined){
+        $(window).scrollTop(anchor.offset().top);
+    }
+}
+
+SAFE.prototype.use_page_class = function(details){
+    var sf = this;
+
+    var class_name = details.class_name;
+
+    var class_name;
+    var class_obj;
+    sf.current_details = details;
+    if((typeof class_name)==='string'){
+        //This is the name of a class, rather than the class itself
+
+        var found_class = window[class_name];
+        if(found_class===undefined){
+            if(sf.load_page_class!==null){
+
+                var load_class = class_name;
+
+                sf.load_page_class(load_class,function(class_def, class_css){
+                    var css = document.createElement("style");
+                    css.type = "text/css";
+                    if (css.styleSheet){
+                        css.styleSheet.cssText = class_css;
+                    } else {
+                        css.appendChild(document.createTextNode(class_css));
+                    }
+                    $("head")[0].appendChild(css);
+
+                    //Re-add class_name because it will be removed
+                    details.class_name = class_name;
+                    if(sf.current_details===details){
+                        sf.use_page_class(details);
+                    }
+                });
+
+
+                if(sf.loading_page!==null){
+                    class_obj = sf.loading_page;
+                } else {
+                    return;
+                }
+
+            } else {
+                SAFE.console.error("The requested class ("+class_name+") was not found and dynamic class loading is not enabled");
+                class_obj = null;
+            }
+        } else {
+            class_obj = found_class;
+        }
+    } else {
+        class_obj = class_name;
+    }
+
+    if (class_obj == null) { //404
         if (sf.no_page_found_class == null) {
             if (sf.current_page != null) {
                 sf.current_page.remove();
                 sf.current_page = null;
-                sf.previous_class_name = null;
+                sf.previous_class = null;
             }
-            sf.element.text("No 404 page set. Use Site.set_no_page_found_class(class_name) to set one.");
+            SAFE.console.error("No 404 page set. Use Site.set_no_page_found_class(class_name) to set one.");
             return;
         } else {
-            class_name = sf.no_page_found_class;
+            class_obj = sf.no_page_found_class;
         }
     }
 
-    if (class_name == sf.previous_class_name) {
-        var new_url_response = sf.current_page.new_url(parameters, url, wildcard_contents);
+    if (class_obj === sf.previous_class) {
+        var new_url_response = sf.current_page.new_url(details);
         if (new_url_response != "NOT_SET") {
+            if(details.anchor){
+                sf.scroll_to_anchor($("a[name*='"+details.anchor+"']"));
+            }
             return;
         }
     }
@@ -2463,19 +2754,36 @@ SAFE.prototype.use_page_class = function(class_name, parameters, url, wildcard_c
         old_page = sf.current_page;
     }
 
+    var pre_load_response = sf.pre_load(class_obj, details, old_page);
 
-    var pre_load_response = sf.pre_load_callback(class_name, parameters, url, wildcard_contents);
-
-    if (pre_load_response != null) {
-        sf.load_url(pre_load_response, true);
+    if (pre_load_response !== undefined) {
+        if((typeof pre_load_response) === 'function'){
+            //Given a class
+        } else if(pre_load_response===null){
+            //Load the 404 page
+            details.class_name = null;
+            sf.use_page_class(details);
+            return;
+        } else {
+            //Load as URL
+            sf.load_url(pre_load_response, true);
+        }
         return;
     }
 
-    sf.current_page = new_page = new class_name(parameters, url, wildcard_contents, old_page);
-    sf.previous_class_name = class_name;
+    var details_for_page = JSON.parse(JSON.stringify(details));
 
+    //Would create a circular structure if details were output via JSON.stringify
+    delete details_for_page.class_name;
 
-    var transition_response = sf.transition_page_callback(sf.current_page, old_page);
+    var new_page = new class_obj(details_for_page, old_page);
+    sf.current_page = new_page;
+    sf.previous_class = class_obj;
+
+    //Call before page transition to give the opportunity to correctly size any page elements
+    sf.resize();
+
+    var transition_response = sf.transition_page(sf.current_page, old_page);
 
     if (transition_response === true) {
         //The callback handled the page switching
@@ -2487,11 +2795,20 @@ SAFE.prototype.use_page_class = function(class_name, parameters, url, wildcard_c
 
     //Call the global resize function to correctly position everything
     sf.resize();
+
+    if(details.anchor){
+        sf.scroll_to_anchor($("a[name*='"+details.anchor+"']"));
+    }
 }
 
 SAFE.prototype.set_no_page_found_class = function(class_name) {
     var sf = this;
+    sf.no_page_found_class = class_name;
+}
 
+//Alias for set_no_page_found_class
+SAFE.prototype.set_404 = function(class_name) {
+    var sf = this;
     sf.no_page_found_class = class_name;
 }
 
@@ -2524,10 +2841,10 @@ SAFE.prototype.resize = function() {
     var doc_width = $(document).width() - sf.scroll_bar_width();
     var doc_height = $(document).height();
 
-    var window_width = $(window).width() - sf.scroll_bar_width();
-    var window_height = $(window).height();
+    var window_width = $(window).outerWidth();
+    var window_height = $(window).outerHeight();
 
-    var resize_obj = {
+    sf.resize_obj = {
         scroll_bar_width: sf.scroll_bar_width(),
         doc_width: doc_width,
         doc_height: doc_height,
@@ -2535,10 +2852,10 @@ SAFE.prototype.resize = function() {
         window_height: window_height
     }
 
-    sf.on_resize(resize_obj);
+    sf.on_resize(sf.resize_obj);
 
     if (sf.current_page != null) {
-        sf.current_page.resize(resize_obj);
+        sf.current_page.resize(sf.resize_obj);
     }
 }
 
@@ -2549,8 +2866,11 @@ SAFE.prototype.init = function(desired_url) {
     if (window.location.search != null) {
         path_name += window.location.search;
     }
+    if (window.location.hash != null) {
+        path_name += window.location.hash;
+    }
 
-    var current_url = decodeURIComponent(path_name);
+    var current_url = path_name;
     if (desired_url != null) {
         if (desired_url != current_url) {
             current_url = desired_url;
@@ -2563,8 +2883,6 @@ SAFE.prototype.init = function(desired_url) {
 
     if (sf.history_state_supported) {
 
-        History.replaceState(null, "", Site.origin + current_url);
-
         History.Adapter.bind(window, 'statechange', function() {
             if (sf.ignore_next_url) {
                 sf.ignore_next_url = false;
@@ -2572,7 +2890,7 @@ SAFE.prototype.init = function(desired_url) {
             }
             var state = History.getState();
             if (state != null) {
-                sf.load_url(decodeURIComponent(state.url), false);
+                sf.load_url(decodeURI(state.url), false);
             }
         });
     }
@@ -2591,27 +2909,22 @@ SAFE.prototype.init = function(desired_url) {
 SAFE.prototype.reload_page = function() {
     var sf = this;
 
-    sf.use_page_class(
-        sf.current_class_and_details.class_name,
-        sf.current_class_and_details.parameters,
-        sf.current_class_and_details.url,
-        sf.current_class_and_details.wildcard_contents
-    );
+    sf.use_page_class(sf.current_class_and_details);
 }
 
-SAFE.prototype.replace_current_url = function(new_url, call_url_changed_callback) {
+SAFE.prototype.replace_current_url = function(new_url, call_url_changed) {
     /* Change the current url without loading any new page or providing a new url to the current page. This function is rarely useful and should be avoided in most circumstances. */
     var sf = this;
 
-    call_url_changed_callback = (typeof call_url_changed_callback)!="undefined" ? call_url_changed_callback : true;
+    call_url_changed = (typeof call_url_changed)!="undefined" ? call_url_changed: true;
 
     var previous_ignore_value = sf.ignore_next_url;
     sf.ignore_next_url = true;
     History.replaceState(null, "", Site.origin + new_url);
     sf.ignore_next_url = previous_ignore_value;
 
-    if(call_url_changed_callback){
-        sf.url_changed_callback(
+    if(call_url_changed){
+        sf.url_changed(
             window.location.toString(),
             window.location.pathname,
             window.location.toString().substring(Site.origin.length),
@@ -2623,7 +2936,16 @@ SAFE.prototype.replace_current_url = function(new_url, call_url_changed_callback
 SAFE.prototype.add_url = function(url, class_name) {
     var sf = this;
 
-    sf.map[url] = class_name;
+    sf.urls.push([url,class_name]);
+}
+
+SAFE.prototype.add_url_map = function(url_map, class_name) {
+    var sf = this;
+
+    for(var url in url_map){
+        var class_name = url_map[url];
+        sf.add_url(url, class_name);
+    }
 }
 
 SAFE.prototype.scroll_bar_width = function() {
@@ -2643,28 +2965,37 @@ SAFE.prototype.scroll_bar_width = function() {
     return sf.scroll_bar_width_value;
 }
 
-SAFE.prototype.get_class_for_url = function(url_with_parameters) {
+SAFE.prototype.get_class_for_url = function(url_with_query) {
     var sf = this;
 
-    var class_and_details = sf.get_class_and_details_for_url(url_with_parameters);
+    var class_and_details = sf.get_class_and_details_for_url(url_with_query);
+
+    var class_def = window[class_and_details.class_name];
+    if(class_def===undefined){
+        class_def = class_and_details.class_name;
+    }
 
     if (class_and_details != null) {
-        return class_and_details.class_name;
+        return class_def;
     }
     return null;
 }
 
-SAFE.prototype.get_class_and_details_for_url = function(url_with_parameters) {
+SAFE.prototype.get_class_and_details_for_url = function(url_with_query) {
     var sf = this;
 
-    var parameters = {};
+    var query_params = {};
 
-    var url_split = url_with_parameters.split("?");
+    //Gets "anchors"
+    var split_by_hash = url_with_query.split("#");
+    var anchor = split_by_hash[1];
+
+    var url_split = split_by_hash[0].split("?");
     if (url_split.length > 1) {
-        parameters = sf.parse_query_string(url_split[1]);
+        query_params = sf.parse_query_string(url_split[1]);
     }
 
-    url = url_split[0];
+    var url = decodeURIComponent(url_split[0]);
 
     if (url.length >= sf.origin.length) {
         if (url.substring(0, sf.origin.length) == sf.origin) {
@@ -2687,52 +3018,109 @@ SAFE.prototype.get_class_and_details_for_url = function(url_with_parameters) {
             effective_path.length > url.length ||
             url.substring(0, effective_path.length) != effective_path
         ) {
-            SAFE.console.error("The requested url (" + url_with_parameters + ") was not relative to the domain/origin and within the Site.path scope");
+            SAFE.console.error("The requested url (" + url_with_query + ") was not relative to the domain/origin and within the Site.path scope");
             return null;
         }
         url = url.substring(effective_path.length - 1);
     }
 
-    var class_name = sf.map[url];
-    var wildcard_contents = null;
 
-    var wildcard_contents = null;
-    if (class_name == null) {
-        //Loop through the available names to check for wildcard paths
-        for (var map_url in sf.map) {
+    var url_parts = url.split("/");
+    if(url_parts[url_parts.length-1]===""){
+        //Remove empty last
+        url_parts.pop();
+    }
 
-            var index_of_wildcard = map_url.indexOf("*");
-            if (index_of_wildcard != -1) {
-                var url_substring = map_url.substring(0, index_of_wildcard);
-                if (url_substring.length < url.length) {
-                    if (url_substring == url.substring(0, url_substring.length)) {
-                        class_name = sf.map[map_url];
-                        wildcard_contents = url.substring(url_substring.length);
-                        url = url_substring + "*";
-                    }
-                }
-            }
+    if(url_parts[0]===""){
+        //Remove empty first
+        url_parts.shift();
+    }
+
+    //Defaults
+    var class_name = null;
+    var url_params = {};
+    var url_pattern = null;
+
+    //Loop through the available names to check for wildcard paths
+    for (var i = 0; i < sf.urls.length; i++) {
+
+        var map_pair = sf.urls[i];
+
+        var map_url = map_pair[0];
+        var map_class_name = map_pair[1];
+
+        var this_url_params = {};
+
+        var map_url_parts = map_url.split("/");
+        if(map_url_parts[map_url_parts.length-1]===""){
+            //Remove empty last
+            map_url_parts.pop();
         }
+
+
+        var substring_start = 0;
+        if(map_url_parts[0]===""){
+            //Remove empty first
+            map_url_parts.shift();
+            substring_start++;
+        }
+
+        if(map_url_parts.length>url_parts.length){
+            continue;
+        }
+
+        var is_valid = true;
+        var had_wildcard = false;
+        for(var k = 0; k < map_url_parts.length; k++){
+            var map_part = map_url_parts[k];
+            var part = url_parts[k];
+            if(map_part[0]===":"){
+                var param_name = map_part.substring(1);
+                this_url_params[param_name] = part;
+            } else if(map_part[0]==="*"){
+                is_valid = true;
+                had_wildcard = true;
+                this_url_params["*"] = url.substring(substring_start);
+                break;
+            } else if(map_part!==part) {
+                is_valid = false;
+                break;
+            }
+            substring_start+=part.length+1;
+        }
+        if(!had_wildcard && url_parts.length!==map_url_parts.length){
+            is_valid = false;
+        }
+        if(!is_valid){
+            continue;
+        }
+
+        class_name = map_class_name;
+        url_params = this_url_params;
+        url_pattern = map_url;
+        break;
     }
 
     return {
         'class_name': class_name,
-        'parameters': parameters,
+        'query': query_params,
         'url': url,
-        'wildcard_contents': wildcard_contents
+        'url_pattern': url_pattern,
+        'url_with_query': url_with_query.substring(effective_path.length-1),
+        'params': url_params,
+        'anchor': anchor
     };
 }
 
-
-//url_with_parameters must be relative to domain (not origin)
-SAFE.prototype.load_url = function(url_with_parameters, push_state) {
+//url_with_query must be relative to domain (not origin)
+SAFE.prototype.load_url = function(url_with_query, push_state) {
     var sf = this;
 
-    var full_url = Site.origin + url_with_parameters;
+    var full_url = Site.origin + url_with_query;
 
     if (!sf.history_state_supported) {
         var target = encodeURI(full_url);
-        if (window.location != target) {
+        if (window.location != target && window.location != full_url) {
             window.location = target;
             return;
         }
@@ -2744,22 +3132,16 @@ SAFE.prototype.load_url = function(url_with_parameters, push_state) {
         }
     }
 
-    sf.current_class_and_details = sf.get_class_and_details_for_url(url_with_parameters);
+    sf.current_url = full_url;
 
-    if (sf.current_class_and_details.class_name != null) {
-        sf.use_page_class(
-            sf.current_class_and_details.class_name,
-            sf.current_class_and_details.parameters,
-            sf.current_class_and_details.url,
-            sf.current_class_and_details.wildcard_contents
-        );
-    } else {
-        //Show page not found
-        SAFE.console.error("Page not found for url (" + sf.current_class_and_details.url + "). The full url was (" + url_with_parameters + ")");
-        sf.use_page_class(null);
+    sf.current_class_and_details = sf.get_class_and_details_for_url(url_with_query);
+
+    if (sf.current_class_and_details.class_name == null) {
+        SAFE.console.error("Page not found for url (" + sf.current_class_and_details.url + "). The full url was (" + url_with_query + ")");
     }
+    sf.use_page_class(sf.current_class_and_details);
 
-    sf.url_changed_callback(
+    sf.url_changed(
         window.location.toString(),
         window.location.pathname,
         window.location.toString().substring(Site.origin.length),
@@ -2767,8 +3149,6 @@ SAFE.prototype.load_url = function(url_with_parameters, push_state) {
     );
 
     sf.initial_url = false;
-
-    sf.previous_class_name = sf.current_class_and_details.class_name;
 }
 
 var Site;

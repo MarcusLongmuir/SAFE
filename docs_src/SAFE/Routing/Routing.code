@@ -1,0 +1,31 @@
+Site.extend(BlogPostPage, Page);
+
+function BlogPostPage(req){
+	var page = this;
+
+	BlogPostPage.superConstructor.call(this);
+
+	var post_title = req.param.post_title;
+
+	page.element.addClass("blog_post_page").append(
+		$("<div />").text(post_title)
+	)
+}
+Site.add_url("/blog/:post_title", BlogPostPage);
+
+
+
+Site.extend(DocumentPage, Page);
+
+function DocumentPage(req){
+	var page = this;
+
+	DocumentPage.superConstructor.call(this);
+
+	var document_path = req.param['*'];
+
+	page.element.addClass("document_page").append(
+		$("<div />").text(document_path)
+	)
+}
+Site.add_url("/doc/*", DocumentPage);

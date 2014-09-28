@@ -1,0 +1,89 @@
+<script src="http://code.jquery.com/jquery-1.11.0.min.js"></script>
+<script src="__CURRENT_DOMAIN__/demo_files/safe.min.js"></script>
+
+<script type="text/javascript">
+
+	//Define the HomePage
+	Site.extend(HomePage, Page);
+	function HomePage(req){
+		var page = this;
+		HomePage.superConstructor.call(this);
+		page.element.addClass("home_page").css({
+			"background-color": "red",
+			"height": "400px"
+		}).append(
+			$("<div />").text("Home Page!"),
+			$("<a/>").attr("href",Site.path+"about/john_smith?my_param=3").ajax_url().text("Go to /about/john_smith?my_param=3")
+		)
+	}
+	Site.add_url("/index.html",HomePage);
+
+	//Define the AboutPage
+	Site.extend(AboutPage, Page);
+	function AboutPage(req){
+		var page = this;
+		AboutPage.superConstructor.call(this);
+		page.element.addClass("about_page").css({
+			"background-color": "green"
+		}).append(
+			$("<div />").text("About Page!")
+			,
+			$("<div />").append(
+				$("<img />").attr({
+					"src": "http://placehold.it/350x150",
+					"width":"350",
+					"height":"150"
+				})
+			)
+      ,
+			$("<a/>").attr("href",Site.path+"index.html").ajax_url().text("Go to home page")
+		)
+	}
+	Site.add_url("/about/*",AboutPage);
+
+	$(document).ready(function(){
+
+		$("<div />").text("Header").appendTo("body");
+
+		Site.element.appendTo("body");
+  
+		$("<div />").text("Footer").appendTo("body");
+
+		Site.transition_page = function(new_page, old_page) {
+
+			$('html, body').stop().animate({
+				'scrollTop': 0
+			},500);
+
+			Site.element.append(new_page.element);
+  
+			if (old_page != null) {
+		        var css_new_height = new_page.element[0].style.height;
+				var new_height = css_new_height || new_page.element.height();
+				var old_height = old_page.element.height();
+				new_page.element.css({
+					"height" : old_height
+				})
+				old_page.element.css({
+					"width": old_page.element.width(),
+					"height": old_height,
+					"position": "absolute"
+				}).stop(true,true).fadeOut(500, function() {
+					old_page.element.remove();
+					new_page.element.animate({
+						"height": new_height
+					},500,function(){
+						new_page.element.css("height",css_new_height)
+					});
+				})
+			}
+
+			return true;
+		}
+
+		//Remove this line if you're not using the demo environment
+		Site.path = window.location.pathname.replace(/[^\\\/]*$/, '');
+		
+		Site.init();
+	});
+</script>

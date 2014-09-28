@@ -1,0 +1,44 @@
+<script src="http://code.jquery.com/jquery-1.11.0.min.js"></script>
+<script src="__CURRENT_DOMAIN__/demo_files/safe.min.js"></script>
+
+<script type="text/javascript">
+
+	//Define the HomePage
+	Site.extend(HomePage, Page);
+	function HomePage(req, previous_page){
+		var page = this;
+		HomePage.superConstructor.call(this);
+		page.element.addClass("home_page").append(
+			$("<div />").text("Home Page!"),
+			$("<a/>").attr("href",Site.path+"about/john_smith?my_param=3").ajax_url().text("Go to /about/john_smith?my_param=3")
+		)
+	}
+	Site.add_url("/index.html",HomePage);
+
+	//Define the AboutPage
+	Site.extend(AboutPage, Page);
+	function AboutPage(req, previous_page){
+		var page = this;
+		AboutPage.superConstructor.call(this);
+		page.element.addClass("about_page").append(
+			$("<div />").text("About Page!")
+			,
+			$("<pre />").text(JSON.stringify(req,null,4))
+			,
+			$("<a/>").attr("href",Site.path+"index.html").ajax_url().text("Go to home page")
+		)
+	}
+	Site.add_url("/about/:username",AboutPage);
+
+	$(document).ready(function(){
+
+		$("<div />").text("No-reload proof: "+Math.random()).appendTo("body");
+
+		Site.element.appendTo("body");
+
+		//Remove this line if you're not using the demo environment
+		Site.path = window.location.pathname.replace(/[^\\\/]*$/, '');
+		
+		Site.init();
+	});
+</script>
