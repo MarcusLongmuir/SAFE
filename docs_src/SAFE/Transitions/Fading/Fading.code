@@ -1,0 +1,31 @@
+Site.transition_page = function(new_page, old_page) {
+
+    $('html, body').stop().animate({
+        'scrollTop': 0
+    },500);
+
+    Site.element.append(new_page.element);
+
+    if (old_page != null) {
+        var css_new_height = new_page.element[0].style.height;
+        var new_height = css_new_height || new_page.element.height();
+        var old_height = old_page.element.height();
+        new_page.element.css({
+            "height" : old_height
+        })
+        old_page.element.css({
+            "width": old_page.element.width(),
+            "height": old_height,
+            "position": "absolute"
+        }).stop(true,true).fadeOut(500, function() {
+            old_page.element.remove();
+            new_page.element.animate({
+                "height": new_height
+            },500,function(){
+                new_page.element.css("height",css_new_height)
+            });
+        })
+    }
+
+    return true;
+}

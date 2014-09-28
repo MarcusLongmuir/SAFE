@@ -1,0 +1,7 @@
+//A minimal transition_page function
+Site.transition_page = function(new_page, old_page){
+
+    Site.element.empty().append(new_page.element);	
+
+    return true;//Returning true indicates that the transition has been handled
+}

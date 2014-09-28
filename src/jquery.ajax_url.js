@@ -19,6 +19,9 @@
                             event.preventDefault();
                             Site.load_url($(element).attr("href"), true);
                         }
+                    } else {
+                        window.location = $(element).attr("href");
+                        event.preventDefault();
                     }
                 }
             } else { //custom_trigger_return==false

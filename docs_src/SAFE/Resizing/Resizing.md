@@ -1,0 +1,1 @@
+It is often very useful to get callbacks when the user resizes the browser window, either by making your site fullscreen or by rotating their mobile device. Responsive design can be achieved using CSS media queries, but sometimes Javascript can be a better option.

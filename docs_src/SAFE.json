@@ -1,0 +1,112 @@
+{
+    "name": "SAFE",
+    "text": "SAFE/SAFE.md",
+    "sections": [
+        {
+            "name": "Example",
+            "text": "SAFE/SimpleExample.md",
+            "code": [{
+                "path": "SAFE/SimpleExample.code",
+                "type": "html",
+                "runnable": true
+            }]
+        },
+        {
+            "name": "Get SAFE",
+            "text": "SAFE/GetBrowser/GetBrowser.md",
+            "code":[{
+                "path": "SAFE/GetBrowser/GetBrowser.code"
+            }],
+            "sections":[
+                {
+                    "name": "Bower",
+                    "text": "SAFE/GetBrowser/BrowserBower/BrowserBower.md",
+                    "code": [{
+                        "name": "bower.json",
+                        "path": "SAFE/GetBrowser/BrowserBower/BrowserBower.code"
+                    },{
+                        "name": "index.html",
+                        "path": "SAFE/GetBrowser/BrowserBower/BrowserBowerIndex.code"
+                    },{
+                        "name": ".bowerrc",
+                        "path": "SAFE/GetBrowser/BrowserBower/BrowserBowerRC.code"
+                    }]
+                },
+                {
+                    "name": "Manual Install",
+                    "text": "SAFE/GetBrowser/BrowserManual/BrowserManual.md"
+                }
+            ]
+        },
+        {
+            "name": "Topics",
+            "text": "SAFE/Topics.md"
+        },
+        {
+            "name": "Pages",
+            "text": "SAFE/Pages/Pages.md",
+            "code": [{
+                "name": "Example Page",
+                "path": "SAFE/Pages/Pages.code"
+            },{
+                "name": "Example Request Object",
+                "path": "SAFE/Pages/PagesReq.code"
+            }]
+        }, {
+            "name": "Routing",
+            "text": "SAFE/Routing/Routing.md",
+            "code": "SAFE/Routing/Routing.code"
+        },
+        {
+            "name": "Resizing",
+            "text": "SAFE/Resizing/Resizing.md",
+            "sections" : [
+                {
+                    "name": "Page Resizing",
+                    "text": "SAFE/Resizing/PageResizing/PageResizing.md",
+                    "code": [{
+                        "path": "SAFE/Resizing/PageResizing/PageResizing.code",
+                        "type": "js",
+                        "runnable": true
+                    }]
+                },
+                {
+                    "name": "Global Resizing",
+                    "text": "SAFE/Resizing/GlobalResizing/GlobalResizing.md",
+                    "code": [{
+                        "path": "SAFE/Resizing/GlobalResizing/GlobalResizing.code",
+                        "type": "js",
+                        "runnable": true
+                    }]
+                }
+            ]
+        },
+        {
+            "name": "Transitions",
+            "text": "SAFE/Transitions/Transitions.md",
+            "code": "SAFE/Transitions/Transitions.code",
+            "sections": [
+                {
+                    "name": "Fading",
+                    "text": "SAFE/Transitions/Fading/Fading.md",
+                    "code": [{
+                        "path": "SAFE/Transitions/Fading/Fading.code",
+                        "type": "html",
+                        "runnable": true,
+                        "runnable_path": "SAFE/Transitions/Fading/Fading_Complete.code"
+                    }]
+                },
+                {
+                    "name": "Accordion",
+                    "text": "SAFE/Transitions/Accordion/Accordion.md",
+                    "code": [{
+                        "path": "SAFE/Transitions/Accordion/Accordion.code",
+                        "type": "html",
+                        "runnable": true,
+                        "runnable_path": "SAFE/Transitions/Accordion/Accordion_Complete.code"
+                    }]
+                }
+            ]
+        }
+    ]
+}

@@ -1,0 +1,9 @@
+{
+  "name": "YOUR-APP-NAME",
+  "version": "0.0.1",
+  "devDependencies": {
+    "jquery": "1.11.1",
+    "safe" : "*"
+  },
+  "private": true
+}
