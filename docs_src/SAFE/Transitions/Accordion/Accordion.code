@@ -1,0 +1,17 @@
+Site.transition_page = function(new_page, old_page) {
+
+	$('html, body').stop().animate({
+		'scrollTop': 0
+	},500);
+
+	Site.element.append(new_page.element);
+
+	if (old_page != null) {
+		new_page.element.hide().slideDown(500);
+		old_page.element.stop(true,true).slideUp(500, function() {
+            old_page.element.remove();
+		})
+	}
+
+	return true;
+}

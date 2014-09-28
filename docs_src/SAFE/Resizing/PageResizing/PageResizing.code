@@ -1,0 +1,40 @@
+<script src="http://code.jquery.com/jquery-1.11.0.min.js"></script>
+<script src="__CURRENT_DOMAIN__/demo_files/safe.min.js"></script>
+
+<script type="text/javascript">
+
+	//Define a page class
+	Site.extend(MyPage, Page);
+	function MyPage(){
+		var page = this;
+		MyPage.superConstructor.call(this);
+		page.element.addClass("my_page").append(
+			page.status = $("<div />")
+		)
+	}
+	Site.add_url("/index.html",MyPage);
+
+	MyPage.prototype.resize = function(resize_obj){
+		var page = this;
+
+		page.status.text( 
+			resize_obj.window_width + " x " + resize_obj.window_height +
+			" (" +
+			(resize_obj.window_width < 500 ? "thin" : "wide") +
+			" and " +
+			(resize_obj.window_height < 500 ? "short" : "tall") +
+			")"
+		);
+	}
+
+
+	$(document).ready(function(){
+
+		Site.element.appendTo("body");
+
+		//Remove this line if you're not using the demo environment
+		Site.path = window.location.pathname.replace(/[^\\\/]*$/, '');
+		
+		Site.init();
+	});
+</script>

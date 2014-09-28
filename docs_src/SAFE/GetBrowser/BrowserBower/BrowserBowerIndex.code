@@ -1,0 +1,5 @@
+<!-- Include jQuery before SAFE --!>
+<script src="/bower_components/jquery/dist/jquery.js"></script>
+<script src="/bower_components/safe/safe.min.js"></script>
+
+...

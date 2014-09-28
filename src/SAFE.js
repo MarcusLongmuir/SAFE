@@ -99,7 +99,7 @@ SAFE.prototype.build_query_string = function(params) {
 SAFE.prototype.scroll_to_anchor = function(anchor){
     var sf = this;
 
-    if(anchor){
+    if(anchor[0]!==undefined){
         $(window).scrollTop(anchor.offset().top);
     }
 }
@@ -427,7 +427,7 @@ SAFE.prototype.get_class_and_details_for_url = function(url_with_query) {
         query_params = sf.parse_query_string(url_split[1]);
     }
 
-    var url = url_split[0];
+    var url = decodeURIComponent(url_split[0]);
 
     if (url.length >= sf.origin.length) {
         if (url.substring(0, sf.origin.length) == sf.origin) {
@@ -549,8 +549,6 @@ SAFE.prototype.load_url = function(url_with_query, push_state) {
     var sf = this;
 
     var full_url = Site.origin + url_with_query;
-
-    url_with_query = decodeURIComponent(url_with_query);
 
     if (!sf.history_state_supported) {
         var target = encodeURI(full_url);
