@@ -4,10 +4,8 @@ var plumber = require('gulp-plumber');
 
 var less = require('gulp-less');
 var concat = require('gulp-concat');
-var watch = require('gulp-watch');
 var gulpImports = require('gulp-imports');
 var nodemon = require('gulp-nodemon');
-var path = require('path');
 
 var onError = function (err) {  
   gutil.beep();
@@ -31,8 +29,6 @@ gulp.task('js', function(){
     .pipe(concat('frontend.js'))
     .pipe(gulp.dest('./public/'))
 });
-
-
 
 gulp.task('watch', function(){
     gulp.watch(['public_src/**/*.js'], ['js']);

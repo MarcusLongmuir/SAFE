@@ -1,4 +1,4 @@
-Site.extend(NotFoundPage, Page);
+SAFE.extend(NotFoundPage, Page);
 
 function NotFoundPage(parameters, url) {
     var page = this;
@@ -6,9 +6,10 @@ function NotFoundPage(parameters, url) {
     NotFoundPage.superConstructor.call(this);
 
     page.element.addClass("not_found_page").append(
-        $("<div />").text("404 - Page not found")
-    ).append(
-        $("<a href='/' />")
+        $("<div />")
+        .text("404 - Page not found")
+    ,
+        $("<a />",{href:'/'})
         .text("Go back to homepage")
         .ajax_url()
     )

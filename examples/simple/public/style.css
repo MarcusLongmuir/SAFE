@@ -140,15 +140,5 @@ table {
 }
 .page_holder {
   position: relative;
-}
-.page_holder .home_page {
-  background-color: red;
-}
-.page_holder .home_page:after {
-  clear: both;
-}
-.page_holder .home_page:before,
-.page_holder .home_page:after {
-  content: " ";
-  display: table;
+  background-color: beige;
 }

@@ -1,3 +1,5 @@
-To use SAFE without a package manager, download ```safe.min.js``` from the SAFE repository:
+To use SAFE without a package manager, download ```safe.min.js```(minified) or ```safe.js```(non-minified) from the [SAFE repository](https://github.com/SuperAwesomeLTD/SAFE/):
 
-* [safe.min.js](https://raw.githubusercontent.com/SuperAwesomeLTD/SAFE/master/safe.min.js?token=669895__eyJzY29wZSI6IlJhd0Jsb2I6U3VwZXJBd2Vzb21lTFREL1NBRkUvbWFzdGVyL3NhZmUubWluLmpzIiwiZXhwaXJlcyI6MTQwNDkwMjk1NX0%3D--b8436e9230fe8daca2280da6add42d19efa26d52) ([repository](https://github.com/SuperAwesomeLTD/SAFE/))
+* [safe.min.js](https://github.com/SuperAwesomeLTD/SAFE/raw/master/safe.min.js) (minified)
+
+* [safe.js](https://github.com/SuperAwesomeLTD/SAFE/raw/master/safe.js) (unminified)

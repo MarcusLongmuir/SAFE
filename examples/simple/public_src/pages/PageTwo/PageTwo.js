@@ -1,4 +1,4 @@
-Site.extend(PageTwo, Page);
+SAFE.extend(PageTwo, Page);
 
 function PageTwo(parameters, url) {
     var page = this;
@@ -6,14 +6,15 @@ function PageTwo(parameters, url) {
     PageTwo.superConstructor.call(this);
 
     page.element.addClass("page_two").append(
-        $("<div />").text("This is page two")
-    ).append(
-        $("<a href='/' />")
+        $("<div />")
+        .text("This is page two")
+    ,
+        $("<a />",{href:'/'})
         .text("Go back to homepage")
         .ajax_url()
     )
 }
-Site.add_url("/pagetwo/", PageTwo);
+SAFE.add_url("/pagetwo/", PageTwo);
 
 PageTwo.prototype.get_title = function() {
     var page = this;

@@ -8,7 +8,7 @@ var page_title_append = "SAFE Example Site";
 $(document).ready(function(){
 
 	// This callback is called before the current page's resize function is called. Use this callback to resize elements other than the page and set values that pages could make use of.
-	Site.on_resize = function(resize_obj){
+	SAFE.on_resize = function(resize_obj){
 
 		//Add properties based on the dimensions of the window
 		resize_obj.large_screen = resize_obj.window_width > 700;
@@ -19,12 +19,10 @@ $(document).ready(function(){
 	var header = new Header();
 	header.element.appendTo("body");
 
-
-    var page_holder = Site.element.addClass("page_holder").appendTo("body");
 	// Append the framework's body_contents element somewhere. This element will contain the page.
-	Site.element.appendTo("body");
+    var page_holder = SAFE.element.addClass("page_holder").appendTo("body");
 
-	Site.transition_page = function(new_page,old_page){
+	SAFE.transition_page = function(new_page,old_page){
 		var title = new_page.get_title();
 		if(title==null){
 			document.title = page_title_append;
@@ -34,8 +32,8 @@ $(document).ready(function(){
 	}
 
 	//Set the 404 page class
-	Site.set_404(NotFoundPage);
+	SAFE.set_404(NotFoundPage);
 
-	// Site.init loads the page for the current url.
-	Site.init();
+	// SAFE.init loads the page for the current url.
+	SAFE.init();
 });

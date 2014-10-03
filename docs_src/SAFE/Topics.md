@@ -1,9 +1,11 @@
-* [Pages](/docs/SAFE/Pages)
+* [Pages](/docs/safe/Pages)
 
-* [Routing](/docs/SAFE/Routing)
+* [Routing](/docs/safe/Routing)
 
-* [Resizing](/docs/SAFE/Resizing)
-	* [Page Resizing](/docs/SAFE/Resizing/Page Resizing)
-	* [Global Resizing](/docs/SAFE/Resizing/Global Resizing)
+* [Resizing](/docs/safe/Resizing)
+	* [Page Resizing](/docs/safe/Resizing/Page Resizing)
+	* [Global Resizing](/docs/safe/Resizing/Global Resizing)
 
-* [Transitions](/docs/SAFE/Transitions)
+* [Transitions](/docs/safe/Transitions)
+	* [Fading](/docs/safe/Transitions/Fading)
+	* [Accordion](/docs/safe/Transitions/Accordion)

@@ -12442,7 +12442,7 @@ return jQuery;
                 if (on_trigger != null) {
                     on_trigger(event);
                 }
-                if (event.metaKey === true) {
+                if (event.originalEvent.metaKey === true) {
                     //Being opened in another tab
                 } else {
                     if (Site.history_state_supported) {
@@ -12450,6 +12450,9 @@ return jQuery;
                             event.preventDefault();
                             Site.load_url($(element).attr("href"), true);
                         }
+                    } else {
+                        window.location = $(element).attr("href");
+                        event.preventDefault();
                     }
                 }
             } else { //custom_trigger_return==false
@@ -12876,14 +12879,14 @@ Page.prototype.resize = function(resize_obj) {}
 Page.prototype.init = function() {}
 
 Page.prototype.remove = function() {}
-
-function SAFE() {
+function SAFEClass() {
     var sf = this;
 
-    Site = this;
-    sf.debug = false;
+    SAFE = this;
+    Site = this;//Legacy alias
+
     sf.initial_url = true;
-    sf.map = {};
+    sf.urls = [];
     sf.ignore_next_url = false;
     sf.origin = window.location.protocol + "//" + window.location.hostname;
     if (window.location.port != "") {
@@ -12907,13 +12910,13 @@ function SAFE() {
 if (typeof(console) === 'undefined') {
     var cons = {}
     cons.log = cons.error = cons.info = cons.debug = cons.warn = cons.trace = cons.dir = cons.dirxml = cons.group = cons.groupEnd = cons.time = cons.timeEnd = cons.assert = cons.profile = function() {};
-    SAFE.console = cons;
+    SAFEClass.console = cons;
 } else {
-    SAFE.console = console;
+    SAFEClass.console = console;
 }
 
 //Used to subclass Javascript classes
-SAFE.prototype.extend = function(sub, sup) {
+SAFEClass.prototype.extend = function(sub, sup) {
     function emptyclass() {}
     emptyclass.prototype = sup.prototype;
     sub.prototype = new emptyclass();
@@ -12922,29 +12925,29 @@ SAFE.prototype.extend = function(sub, sup) {
     sub.superClass = sup.prototype;
 }
 
-SAFE.prototype.url_changed = function(url) {
+SAFEClass.prototype.url_changed = function(url) {
     var sf = this;
 
 };
 
-SAFE.prototype.on_resize = function(resize_obj) {
+SAFEClass.prototype.on_resize = function(resize_obj) {
     var sf = this;
     
 };
 
-SAFE.prototype.pre_load = function(class_name, parameters, url, wildcard_contents) {
+SAFEClass.prototype.pre_load = function(class_name, parameters, url, wildcard_contents) {
     var sf = this;
 
     //Must return undefined (null shows 404)
 };
 
-SAFE.prototype.transition_page = function(new_page, old_page){
+SAFEClass.prototype.transition_page = function(new_page, old_page){
     var sf = this;
 
     return false;
 }
 
-SAFE.prototype.parse_query_string = function(query_string) {
+SAFEClass.prototype.parse_query_string = function(query_string) {
     var query_split = query_string.split('&');
     var params = {};
     for (var i = 0; i < query_split.length; i++) {
@@ -12955,7 +12958,7 @@ SAFE.prototype.parse_query_string = function(query_string) {
     return params;
 }
 
-SAFE.prototype.build_query_string = function(params) {
+SAFEClass.prototype.build_query_string = function(params) {
     var query_string = "";
     var had_query_params = false;
     var ret = [];
@@ -12970,21 +12973,22 @@ SAFE.prototype.build_query_string = function(params) {
     return query_string;
 }
 
-SAFE.prototype.scroll_to_anchor = function(anchor){
+SAFEClass.prototype.scroll_to_anchor = function(anchor){
     var sf = this;
 
-    if(anchor){
+    if(anchor[0]!==undefined){
         $(window).scrollTop(anchor.offset().top);
     }
 }
 
-SAFE.prototype.use_page_class = function(details){
+SAFEClass.prototype.use_page_class = function(details){
     var sf = this;
 
     var class_name = details.class_name;
 
     var class_name;
     var class_obj;
+    sf.current_details = details;
     if((typeof class_name)==='string'){
         //This is the name of a class, rather than the class itself
 
@@ -13003,7 +13007,12 @@ SAFE.prototype.use_page_class = function(details){
                         css.appendChild(document.createTextNode(class_css));
                     }
                     $("head")[0].appendChild(css);
-                    sf.use_page_class(details);
+
+                    //Re-add class_name because it will be removed
+                    details.class_name = class_name;
+                    if(sf.current_details===details){
+                        sf.use_page_class(details);
+                    }
                 });
 
 
@@ -13014,7 +13023,7 @@ SAFE.prototype.use_page_class = function(details){
                 }
 
             } else {
-                SAFE.console.error("The requested class ("+class_name+") was not found and dynamic class loading is not enabled");
+                SAFEClass.console.error("The requested class ("+class_name+") was not found and dynamic class loading is not enabled");
                 class_obj = null;
             }
         } else {
@@ -13031,7 +13040,7 @@ SAFE.prototype.use_page_class = function(details){
                 sf.current_page = null;
                 sf.previous_class = null;
             }
-            SAFE.console.error("No 404 page set. Use Site.set_no_page_found_class(class_name) to set one.");
+            SAFEClass.console.error("No 404 page set. Use Site.set_no_page_found_class(class_name) to set one.");
             return;
         } else {
             class_obj = sf.no_page_found_class;
@@ -13052,10 +13061,9 @@ SAFE.prototype.use_page_class = function(details){
     if (sf.current_page != null) {
         sf.current_page.remove();
         old_page = sf.current_page;
-        details.previous_page = old_page;
     }
 
-    var pre_load_response = sf.pre_load(class_obj, details);
+    var pre_load_response = sf.pre_load(class_obj, details, old_page);
 
     if (pre_load_response !== undefined) {
         if((typeof pre_load_response) === 'function'){
@@ -13072,11 +13080,17 @@ SAFE.prototype.use_page_class = function(details){
         return;
     }
 
+    var details_for_page = JSON.parse(JSON.stringify(details));
 
+    //Would create a circular structure if details were output via JSON.stringify
+    delete details_for_page.class_name;
 
-    var new_page = new class_obj(details);
+    var new_page = new class_obj(details_for_page, old_page);
     sf.current_page = new_page;
     sf.previous_class = class_obj;
+
+    //Call before page transition to give the opportunity to correctly size any page elements
+    sf.resize();
 
     var transition_response = sf.transition_page(sf.current_page, old_page);
 
@@ -13096,18 +13110,18 @@ SAFE.prototype.use_page_class = function(details){
     }
 }
 
-SAFE.prototype.set_no_page_found_class = function(class_name) {
+SAFEClass.prototype.set_no_page_found_class = function(class_name) {
     var sf = this;
     sf.no_page_found_class = class_name;
 }
 
 //Alias for set_no_page_found_class
-SAFE.prototype.set_404 = function(class_name) {
+SAFEClass.prototype.set_404 = function(class_name) {
     var sf = this;
     sf.no_page_found_class = class_name;
 }
 
-SAFE.prototype.ajax_post = function(request) {
+SAFEClass.prototype.ajax_post = function(request) {
     request.cache = false;
     request.type = "post";
     request.contentType = "application/json; charset=utf-8",
@@ -13116,21 +13130,21 @@ SAFE.prototype.ajax_post = function(request) {
     return $.ajax(request);
 }
 
-SAFE.prototype.ajax_get = function(request) {
+SAFEClass.prototype.ajax_get = function(request) {
     request.cache = false;
     request.dataType = "json";
     request.type = "get";
     return $.ajax(request);
 }
 
-SAFE.prototype.ajax_delete = function(request) {
+SAFEClass.prototype.ajax_delete = function(request) {
     request.cache = false;
     request.dataType = "json";
     request.type = "delete";
     return $.ajax(request);
 }
 
-SAFE.prototype.resize = function() {
+SAFEClass.prototype.resize = function() {
     var sf = this;
 
     var doc_width = $(document).width() - sf.scroll_bar_width();
@@ -13154,15 +13168,18 @@ SAFE.prototype.resize = function() {
     }
 }
 
-SAFE.prototype.init = function(desired_url) {
+SAFEClass.prototype.init = function(desired_url) {
     var sf = this;
 
     var path_name = window.location.pathname;
     if (window.location.search != null) {
         path_name += window.location.search;
     }
+    if (window.location.hash != null) {
+        path_name += window.location.hash;
+    }
 
-    var current_url = decodeURIComponent(path_name);
+    var current_url = path_name;
     if (desired_url != null) {
         if (desired_url != current_url) {
             current_url = desired_url;
@@ -13175,8 +13192,6 @@ SAFE.prototype.init = function(desired_url) {
 
     if (sf.history_state_supported) {
 
-        History.replaceState(null, "", Site.origin + current_url);
-
         History.Adapter.bind(window, 'statechange', function() {
             if (sf.ignore_next_url) {
                 sf.ignore_next_url = false;
@@ -13184,7 +13199,7 @@ SAFE.prototype.init = function(desired_url) {
             }
             var state = History.getState();
             if (state != null) {
-                sf.load_url(decodeURIComponent(state.url), false);
+                sf.load_url(decodeURI(state.url), false);
             }
         });
     }
@@ -13200,13 +13215,13 @@ SAFE.prototype.init = function(desired_url) {
     sf.load_url(current_url, false);
 }
 
-SAFE.prototype.reload_page = function() {
+SAFEClass.prototype.reload_page = function() {
     var sf = this;
 
     sf.use_page_class(sf.current_class_and_details);
 }
 
-SAFE.prototype.replace_current_url = function(new_url, call_url_changed) {
+SAFEClass.prototype.replace_current_url = function(new_url, call_url_changed) {
     /* Change the current url without loading any new page or providing a new url to the current page. This function is rarely useful and should be avoided in most circumstances. */
     var sf = this;
 
@@ -13227,13 +13242,22 @@ SAFE.prototype.replace_current_url = function(new_url, call_url_changed) {
     }
 }
 
-SAFE.prototype.add_url = function(url, class_name) {
+SAFEClass.prototype.add_url = function(url, class_name) {
     var sf = this;
 
-    sf.map[url] = class_name;
+    sf.urls.push([url,class_name]);
 }
 
-SAFE.prototype.scroll_bar_width = function() {
+SAFEClass.prototype.add_url_map = function(url_map, class_name) {
+    var sf = this;
+
+    for(var url in url_map){
+        var class_name = url_map[url];
+        sf.add_url(url, class_name);
+    }
+}
+
+SAFEClass.prototype.scroll_bar_width = function() {
     var sf = this;
 
     if (sf.scroll_bar_width_value != -1) {
@@ -13250,10 +13274,10 @@ SAFE.prototype.scroll_bar_width = function() {
     return sf.scroll_bar_width_value;
 }
 
-SAFE.prototype.get_class_for_url = function(url_with_parameters) {
+SAFEClass.prototype.get_class_for_url = function(url_with_query) {
     var sf = this;
 
-    var class_and_details = sf.get_class_and_details_for_url(url_with_parameters);
+    var class_and_details = sf.get_class_and_details_for_url(url_with_query);
 
     var class_def = window[class_and_details.class_name];
     if(class_def===undefined){
@@ -13266,13 +13290,13 @@ SAFE.prototype.get_class_for_url = function(url_with_parameters) {
     return null;
 }
 
-SAFE.prototype.get_class_and_details_for_url = function(url_with_parameters) {
+SAFEClass.prototype.get_class_and_details_for_url = function(url_with_query) {
     var sf = this;
 
     var query_params = {};
 
     //Gets "anchors"
-    var split_by_hash = url_with_parameters.split("#");
+    var split_by_hash = url_with_query.split("#");
     var anchor = split_by_hash[1];
 
     var url_split = split_by_hash[0].split("?");
@@ -13280,7 +13304,7 @@ SAFE.prototype.get_class_and_details_for_url = function(url_with_parameters) {
         query_params = sf.parse_query_string(url_split[1]);
     }
 
-    var url = url_split[0];
+    var url = decodeURIComponent(url_split[0]);
 
     if (url.length >= sf.origin.length) {
         if (url.substring(0, sf.origin.length) == sf.origin) {
@@ -13303,7 +13327,7 @@ SAFE.prototype.get_class_and_details_for_url = function(url_with_parameters) {
             effective_path.length > url.length ||
             url.substring(0, effective_path.length) != effective_path
         ) {
-            SAFE.console.error("The requested url (" + url_with_parameters + ") was not relative to the domain/origin and within the Site.path scope");
+            SAFEClass.console.error("The requested url (" + url_with_query + ") was not relative to the domain/origin and within the Site.path scope");
             return null;
         }
         url = url.substring(effective_path.length - 1);
@@ -13316,13 +13340,23 @@ SAFE.prototype.get_class_and_details_for_url = function(url_with_parameters) {
         url_parts.pop();
     }
 
+    if(url_parts[0]===""){
+        //Remove empty first
+        url_parts.shift();
+    }
+
     //Defaults
     var class_name = null;
     var url_params = {};
-    var url_scheme = null;
-        
+    var url_pattern = null;
+
     //Loop through the available names to check for wildcard paths
-    for (var map_url in sf.map) {
+    for (var i = 0; i < sf.urls.length; i++) {
+
+        var map_pair = sf.urls[i];
+
+        var map_url = map_pair[0];
+        var map_class_name = map_pair[1];
 
         var this_url_params = {};
 
@@ -13332,50 +13366,70 @@ SAFE.prototype.get_class_and_details_for_url = function(url_with_parameters) {
             map_url_parts.pop();
         }
 
-        if(map_url_parts.length!==url_parts.length){
+
+        var substring_start = 0;
+        if(map_url_parts[0]===""){
+            //Remove empty first
+            map_url_parts.shift();
+            substring_start++;
+        }
+
+        if(map_url_parts.length>url_parts.length){
             continue;
         }
 
         var is_valid = true;
-        for(var i = 0; i < map_url_parts.length; i++){
-            var map_part = map_url_parts[i];
-            var part = url_parts[i];
+        var had_wildcard = false;
+        for(var k = 0; k < map_url_parts.length; k++){
+            var map_part = map_url_parts[k];
+            var part = url_parts[k];
             if(map_part[0]===":"){
                 var param_name = map_part.substring(1);
                 this_url_params[param_name] = part;
+            } else if(map_part[0]==="*"){
+                is_valid = true;
+                had_wildcard = true;
+                this_url_params["*"] = url.substring(substring_start);
+                break;
             } else if(map_part!==part) {
                 is_valid = false;
                 break;
             }
+            substring_start+=part.length+1;
+        }
+        if(!had_wildcard && url_parts.length!==map_url_parts.length){
+            is_valid = false;
         }
         if(!is_valid){
             continue;
         }
 
-        class_name = sf.map[map_url];
+        class_name = map_class_name;
         url_params = this_url_params;
-        url_scheme = map_url;
+        url_pattern = map_url;
+        break;
     }
 
     return {
         'class_name': class_name,
         'query': query_params,
         'url': url,
-        'url_scheme': url_scheme,
+        'url_pattern': url_pattern,
+        'url_with_query': url_with_query.substring(effective_path.length-1),
         'params': url_params,
         'anchor': anchor
     };
 }
 
-//url_with_parameters must be relative to domain (not origin)
-SAFE.prototype.load_url = function(url_with_parameters, push_state) {
+//url_with_query must be relative to domain (not origin)
+SAFEClass.prototype.load_url = function(url_with_query, push_state) {
     var sf = this;
 
-    var full_url = Site.origin + url_with_parameters;
+    var full_url = Site.origin + url_with_query;
 
     if (!sf.history_state_supported) {
         var target = encodeURI(full_url);
-        if (window.location != target) {
+        if (window.location != target && window.location != full_url) {
             window.location = target;
             return;
         }
@@ -13389,10 +13443,10 @@ SAFE.prototype.load_url = function(url_with_parameters, push_state) {
 
     sf.current_url = full_url;
 
-    sf.current_class_and_details = sf.get_class_and_details_for_url(url_with_parameters);
+    sf.current_class_and_details = sf.get_class_and_details_for_url(url_with_query);
 
     if (sf.current_class_and_details.class_name == null) {
-        SAFE.console.error("Page not found for url (" + sf.current_class_and_details.url + "). The full url was (" + url_with_parameters + ")");
+        SAFEClass.console.error("Page not found for url (" + sf.current_class_and_details.url + "). The full url was (" + url_with_query + ")");
     }
     sf.use_page_class(sf.current_class_and_details);
 
@@ -13407,8 +13461,9 @@ SAFE.prototype.load_url = function(url_with_parameters, push_state) {
 }
 
 var Site;
-new SAFE();
-Site.extend(HomePage, Page);
+var SAFE;
+new SAFEClass();
+SAFE.extend(HomePage, Page);
 
 function HomePage(req) {
     var page = this;
@@ -13416,23 +13471,23 @@ function HomePage(req) {
     HomePage.superConstructor.call(this);
 
     page.element.addClass("home_page").append(
-        $("<div />").text("This example is powered by the SuperAwesome Front End framework")
-    ).append(
-        $("<a href='/pagetwo/' />").text("Go to page 2")
+        $("<div />")
+        .text("This example is powered by the SuperAwesome Front End framework")
+    ,
+        $("<a />",{href:"/pagetwo/"})
+        .text("Go to page 2")
         .ajax_url()
-    ).append(
+    ,
         $("<div />") //Just for break
-    ).append(
-        $("<a href='/param_page/from_homepage' />")
+    ,
+        $("<a />",{href:"/param_page/from_homepage"})
         .text("Link to /param_page/from_homepage")
         .ajax_url()
-    ).append(
-        $("<br />")
-    ).append(
+    ,
         page.stats_element = $("<div />")
     )
 }
-Site.add_url("/", HomePage);
+SAFE.add_url("/", HomePage);
 
 HomePage.prototype.get_title = function() {
     var page = this;
@@ -13452,9 +13507,8 @@ HomePage.prototype.remove = function() {
 HomePage.prototype.resize = function(resize_obj) {
     var page = this;
     page.stats_element.text("Document width: " + resize_obj.window_width + " Document height: " + resize_obj.window_height + " Large screen: " + resize_obj.large_screen);
-
 }
-Site.extend(PageTwo, Page);
+SAFE.extend(PageTwo, Page);
 
 function PageTwo(parameters, url) {
     var page = this;
@@ -13462,14 +13516,15 @@ function PageTwo(parameters, url) {
     PageTwo.superConstructor.call(this);
 
     page.element.addClass("page_two").append(
-        $("<div />").text("This is page two")
-    ).append(
-        $("<a href='/' />")
+        $("<div />")
+        .text("This is page two")
+    ,
+        $("<a />",{href:'/'})
         .text("Go back to homepage")
         .ajax_url()
     )
 }
-Site.add_url("/pagetwo/", PageTwo);
+SAFE.add_url("/pagetwo/", PageTwo);
 
 PageTwo.prototype.get_title = function() {
     var page = this;
@@ -13490,7 +13545,7 @@ PageTwo.prototype.resize = function(resize_obj) {
     var page = this;
 
 }
-Site.extend(ParamPage, Page);
+SAFE.extend(ParamPage, Page);
 
 function ParamPage(req) {
     var page = this;
@@ -13500,10 +13555,11 @@ function ParamPage(req) {
     ParamPage.superConstructor.call(this);
 
     page.element.addClass("param_page").append(
-        $("<div />").text("Param page loaded with: \"" + req.params.my_param + "\". Use your back button.")
+        $("<div />")
+        .text("Param page loaded with: \"" + req.params.my_param + "\". Use your back button.")
     )
 }
-Site.add_url("/param_page/:my_param", ParamPage);
+SAFE.add_url("/param_page/:my_param", ParamPage);
 
 ParamPage.prototype.get_title = function() {
     var page = this;
@@ -13521,7 +13577,7 @@ ParamPage.prototype.remove = function() {
 ParamPage.prototype.resize = function(resize_obj) {
     var page = this;
 }
-Site.extend(NotFoundPage, Page);
+SAFE.extend(NotFoundPage, Page);
 
 function NotFoundPage(parameters, url) {
     var page = this;
@@ -13529,9 +13585,10 @@ function NotFoundPage(parameters, url) {
     NotFoundPage.superConstructor.call(this);
 
     page.element.addClass("not_found_page").append(
-        $("<div />").text("404 - Page not found")
-    ).append(
-        $("<a href='/' />")
+        $("<div />")
+        .text("404 - Page not found")
+    ,
+        $("<a />",{href:'/'})
         .text("Go back to homepage")
         .ajax_url()
     )
@@ -13561,39 +13618,38 @@ function Header() {
     var header = this;
 
     header.element = $("<div />").append(
-        $("<a />").text("HomePage ")
-        .attr("href", "/")
+        $("<a />",{"href":"/"})
+        .text("HomePage ")
         .ajax_url()
-    ).append(
-        $("<a />").text("PageTwo ")
-        .attr("href", "/pagetwo/")
+    ,
+        $("<a />",{"href":"/pagetwo/"})
+        .text("PageTwo ")
         .ajax_url()
-    ).append(
-        $("<a />").text("ParamPage ")
-        .attr("href", "/param_page/came_from_header")
+    ,
+        $("<a />",{"href":"/param_page/came_from_header"})
+        .text("ParamPage ")
         .ajax_url()
-    ).append(
-        $("<span />").text("This header changes color only when the page is reloaded")
-    )
-
-    .css("background-color", "rgba(" +
+    ,
+        $("<span />")
+        .text("This header changes color only when the page is reloaded")
+    ).css("background-color", "rgba(" +
         Math.round(Math.random() * 255) + "," +
         Math.round(Math.random() * 255) + "," +
         Math.round(Math.random() * 255) + "," +
         Math.random() +
-        ")")
+    ")")
 }
 
 Header.prototype.resize = function(resize_obj) {
     var header = this;
 }
 
-var page_title_append = "SAFE Example Site";
+var page_title_append = "SAFE. Example Site";
 
 $(document).ready(function(){
 
 	// This callback is called before the current page's resize function is called. Use this callback to resize elements other than the page and set values that pages could make use of.
-	Site.on_resize = function(resize_obj){
+	SAFE.on_resize = function(resize_obj){
 
 		//Add properties based on the dimensions of the window
 		resize_obj.large_screen = resize_obj.window_width > 700;
@@ -13604,12 +13660,10 @@ $(document).ready(function(){
 	var header = new Header();
 	header.element.appendTo("body");
 
-
-    var page_holder = Site.element.addClass("page_holder").appendTo("body");
 	// Append the framework's body_contents element somewhere. This element will contain the page.
-	Site.element.appendTo("body");
+    var page_holder = SAFE.element.addClass("page_holder").appendTo("body");
 
-	Site.transition_page = function(new_page,old_page){
+	SAFE.transition_page = function(new_page,old_page){
 		var title = new_page.get_title();
 		if(title==null){
 			document.title = page_title_append;
@@ -13619,8 +13673,8 @@ $(document).ready(function(){
 	}
 
 	//Set the 404 page class
-	Site.set_404(NotFoundPage);
+	SAFE.set_404(NotFoundPage);
 
-	// Site.init loads the page for the current url.
-	Site.init();
+	// SAFE.init loads the page for the current url.
+	SAFE.init();
 });

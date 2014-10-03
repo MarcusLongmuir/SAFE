@@ -4,7 +4,7 @@
 <script type="text/javascript">
 
 	//Define a page class
-	Site.extend(MyPage, Page);
+	SAFE.extend(MyPage, Page);
 	function MyPage(){
 		var page = this;
 		MyPage.superConstructor.call(this);
@@ -12,7 +12,7 @@
 			$("<div />").text("This is my page")
 		)
 	}
-	Site.add_url("/index.html",MyPage);
+	SAFE.add_url("/index.html",MyPage);
 
 	//Define a header
 	function Header(){
@@ -40,7 +40,7 @@
 
 	var header = new Header();
 
-	Site.on_resize = function(resize_obj){
+	SAFE.on_resize = function(resize_obj){
 		header.resize(resize_obj);
 	}
 
@@ -48,11 +48,11 @@
 
 		header.element.appendTo("body");
 
-		Site.element.appendTo("body");
+		SAFE.element.appendTo("body");
 
 		//Remove this line if you're not using the demo environment
-		Site.path = window.location.pathname.replace(/[^\\\/]*$/, '');
+		SAFE.path = window.location.pathname.replace(/[^\\\/]*$/, '');
 		
-		Site.init();
+		SAFE.init();
 	});
 </script>

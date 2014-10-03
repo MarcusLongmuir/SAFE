@@ -11,7 +11,7 @@ var docs_to_json = require('sa-docs-to-json');
 
 gulp.task('js', function(){
     return gulp.src([
-        'src/SAFE.js'
+        'src/SAFEClass.js'
     ])
     .pipe(gulpImports())
     .pipe(concat('safe.js'))
@@ -30,5 +30,5 @@ gulp.task('docs', function() {
 
 gulp.task('default', function(){
     gulp.watch('src/**.js', ['js']);
-    gulp.watch('docs_src/**.*', ['docs']);
+    gulp.watch('docs_src/**/*', ['docs']);
 });

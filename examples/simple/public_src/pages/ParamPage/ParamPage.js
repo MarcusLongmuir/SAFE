@@ -1,4 +1,4 @@
-Site.extend(ParamPage, Page);
+SAFE.extend(ParamPage, Page);
 
 function ParamPage(req) {
     var page = this;
@@ -8,10 +8,11 @@ function ParamPage(req) {
     ParamPage.superConstructor.call(this);
 
     page.element.addClass("param_page").append(
-        $("<div />").text("Param page loaded with: \"" + req.params.my_param + "\". Use your back button.")
+        $("<div />")
+        .text("Param page loaded with: \"" + req.params.my_param + "\". Use your back button.")
     )
 }
-Site.add_url("/param_page/:my_param", ParamPage);
+SAFE.add_url("/param_page/:my_param", ParamPage);
 
 ParamPage.prototype.get_title = function() {
     var page = this;

@@ -1,0 +1,40 @@
+SAFE.extend(MyPage, Page);
+function MyPage(req, previous_page){
+	var page = this;
+
+	//Call the Page constructor to create an element
+	MyPage.superConstructor.call(this);
+
+	//Add some content to this page
+	page.element.addClass("my_page").append(
+		$("<div /">).text("This is my page!")
+	)
+}
+
+MyPage.prototype.new_url = function(req) {
+	var page = this;
+
+	console.log("page.new_url event called with req:",req);
+}
+
+MyPage.prototype.resize = function(resize_obj) {
+	var page = this;
+
+	console.log("page.resize event called with:",resize_obj);
+}
+
+MyPage.prototype.init = function() {
+	var page = this;
+
+	console.log("page.init event called");
+}
+
+MyPage.prototype.remove = function() {
+	var page = this;
+
+	console.log("page.remove event called");	
+}
+
+//Define routes for this page to be displayed on
+SAFE.add_url("/mypage/",MyPage);
+SAFE.add_url("/mypage/:tag",MyPage);

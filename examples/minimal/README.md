@@ -1,9 +1,8 @@
-This is the minimal example of a SAFE site. To get the server working, run:
+This is the minimal example of a SAFE site. To start the server, run:
 
 npm install
 bower install
 node app
-
 
 
 *This will include the latest version of SAFE from Bower. If you want to avoid this (most likely for development of SAFE):

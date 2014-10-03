@@ -14,9 +14,6 @@
         {
             "name": "Get SAFE",
             "text": "SAFE/GetBrowser/GetBrowser.md",
-            "code":[{
-                "path": "SAFE/GetBrowser/GetBrowser.code"
-            }],
             "sections":[
                 {
                     "name": "Bower",
@@ -34,7 +31,10 @@
                 },
                 {
                     "name": "Manual Install",
-                    "text": "SAFE/GetBrowser/BrowserManual/BrowserManual.md"
+                    "text": "SAFE/GetBrowser/BrowserManual/BrowserManual.md",
+                    "code":[{
+                        "path": "SAFE/GetBrowser/BrowserManual/BrowserManual.code"
+                    }]
                 }
             ]
         },
@@ -51,7 +51,17 @@
             },{
                 "name": "Example Request Object",
                 "path": "SAFE/Pages/PagesReq.code"
-            }]
+            }],
+            "sections" : [
+                {
+                    "name": "Additional Methods",
+                    "text": "SAFE/Pages/AdditionalMethods/AdditionalMethods.md",
+                    "code": [{
+                        "path": "SAFE/Pages/AdditionalMethods/AdditionalMethods.code",
+                        "type": "html"
+                    }]
+                }
+            ]
         }, {
             "name": "Routing",
             "text": "SAFE/Routing/Routing.md",
@@ -66,7 +76,7 @@
                     "text": "SAFE/Resizing/PageResizing/PageResizing.md",
                     "code": [{
                         "path": "SAFE/Resizing/PageResizing/PageResizing.code",
-                        "type": "js",
+                        "type": "html",
                         "runnable": true
                     }]
                 },
@@ -75,7 +85,7 @@
                     "text": "SAFE/Resizing/GlobalResizing/GlobalResizing.md",
                     "code": [{
                         "path": "SAFE/Resizing/GlobalResizing/GlobalResizing.code",
-                        "type": "js",
+                        "type": "html",
                         "runnable": true
                     }]
                 }

@@ -1,4 +1,4 @@
-Site.extend(BlogPostPage, Page);
+SAFE.extend(BlogPostPage, Page);
 
 function BlogPostPage(req){
 	var page = this;
@@ -11,11 +11,11 @@ function BlogPostPage(req){
 		$("<div />").text(post_title)
 	)
 }
-Site.add_url("/blog/:post_title", BlogPostPage);
+SAFE.add_url("/blog/:post_title", BlogPostPage);
 
 
 
-Site.extend(DocumentPage, Page);
+SAFE.extend(DocumentPage, Page);
 
 function DocumentPage(req){
 	var page = this;
@@ -28,4 +28,4 @@ function DocumentPage(req){
 		$("<div />").text(document_path)
 	)
 }
-Site.add_url("/doc/*", DocumentPage);
+SAFE.add_url("/doc/*", DocumentPage);

@@ -4,19 +4,20 @@
 <script type="text/javascript">
 
 	//Define the HomePage
-	Site.extend(HomePage, Page);
+	SAFE.extend(HomePage, Page);
 	function HomePage(req, previous_page){
 		var page = this;
 		HomePage.superConstructor.call(this);
 		page.element.addClass("home_page").append(
-			$("<div />").text("Home Page!"),
-			$("<a/>").attr("href",Site.path+"about/john_smith?my_param=3").ajax_url().text("Go to /about/john_smith?my_param=3")
+			$("<div />").text("Home Page!")
+			,
+			$("<a/>",{"href":SAFE.path+"about/john_smith?my_param=3}).ajax_url().text("Go to /about/john_smith?my_param=3")
 		)
 	}
-	Site.add_url("/index.html",HomePage);
+	SAFE.add_url("/index.html",HomePage);
 
 	//Define the AboutPage
-	Site.extend(AboutPage, Page);
+	SAFE.extend(AboutPage, Page);
 	function AboutPage(req, previous_page){
 		var page = this;
 		AboutPage.superConstructor.call(this);
@@ -25,20 +26,20 @@
 			,
 			$("<pre />").text(JSON.stringify(req,null,4))
 			,
-			$("<a/>").attr("href",Site.path+"index.html").ajax_url().text("Go to home page")
+			$("<a/>",{"href",SAFE.path+"index.html"}).ajax_url().text("Go to home page")
 		)
 	}
-	Site.add_url("/about/:username",AboutPage);
+	SAFE.add_url("/about/:username",AboutPage);
 
 	$(document).ready(function(){
 
 		$("<div />").text("No-reload proof: "+Math.random()).appendTo("body");
 
-		Site.element.appendTo("body");
+		SAFE.element.appendTo("body");
 
 		//Remove this line if you're not using the demo environment
-		Site.path = window.location.pathname.replace(/[^\\\/]*$/, '');
+		SAFE.path = window.location.pathname.replace(/[^\\\/]*$/, '');
 		
-		Site.init();
+		SAFE.init();
 	});
 </script>

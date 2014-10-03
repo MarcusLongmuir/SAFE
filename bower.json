@@ -1,8 +1,19 @@
 {
   "name": "safe",
-  "version": "0.0.1",
-  "dependencies": {
- 	"history.js": "*"
+  "version": "0.1.0",
+  "main": "safe.js",
+  "devDependencies": {
+   	"history.js": "*"
   },
+  "ignore": [
+    "bower_components",
+    "docs",
+    "docs_src",
+    "examples",
+    "node_modules",
+    "src",
+    "gulpfile.js",
+    ".gitignore"
+  ],
   "private": true
 }

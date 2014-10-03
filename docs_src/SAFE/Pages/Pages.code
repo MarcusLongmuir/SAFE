@@ -1,13 +1,16 @@
-extend(MyPage, Page);
+SAFE.extend(MyPage, Page);
 function MyPage(req, previous_page){
 	var page = this;
 
+	//Call the Page constructor to create an element
 	MyPage.superConstructor.call(this);
 
+	//Add some content to this page
 	page.element.addClass("my_page").append(
 		$("<div /">).text("This is my page!")
 	)
 }
 
-Site.add_url("/mypage/",MyPage);
-Site.add_url("/mypage/:tag",MyPage);
+//Define routes for this page to be displayed on
+SAFE.add_url("/mypage/",MyPage);
+SAFE.add_url("/mypage/:tag",MyPage);

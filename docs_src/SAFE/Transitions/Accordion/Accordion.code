@@ -1,10 +1,10 @@
-Site.transition_page = function(new_page, old_page) {
+SAFE.transition_page = function(new_page, old_page) {
 
 	$('html, body').stop().animate({
 		'scrollTop': 0
 	},500);
 
-	Site.element.append(new_page.element);
+	SAFE.element.append(new_page.element);
 
 	if (old_page != null) {
 		new_page.element.hide().slideDown(500);

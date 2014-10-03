@@ -2,12 +2,12 @@
 @import("jquery.ajax_url.js");
 @import("jquery.tap.js");
 @import("Page.js");
-
-function SAFE() {
+function SAFEClass() {
     var sf = this;
 
-    Site = this;
-    sf.debug = false;
+    SAFE = this;
+    Site = this;//Legacy alias
+
     sf.initial_url = true;
     sf.urls = [];
     sf.ignore_next_url = false;
@@ -33,13 +33,13 @@ function SAFE() {
 if (typeof(console) === 'undefined') {
     var cons = {}
     cons.log = cons.error = cons.info = cons.debug = cons.warn = cons.trace = cons.dir = cons.dirxml = cons.group = cons.groupEnd = cons.time = cons.timeEnd = cons.assert = cons.profile = function() {};
-    SAFE.console = cons;
+    SAFEClass.console = cons;
 } else {
-    SAFE.console = console;
+    SAFEClass.console = console;
 }
 
 //Used to subclass Javascript classes
-SAFE.prototype.extend = function(sub, sup) {
+SAFEClass.prototype.extend = function(sub, sup) {
     function emptyclass() {}
     emptyclass.prototype = sup.prototype;
     sub.prototype = new emptyclass();
@@ -48,29 +48,29 @@ SAFE.prototype.extend = function(sub, sup) {
     sub.superClass = sup.prototype;
 }
 
-SAFE.prototype.url_changed = function(url) {
+SAFEClass.prototype.url_changed = function(url) {
     var sf = this;
 
 };
 
-SAFE.prototype.on_resize = function(resize_obj) {
+SAFEClass.prototype.on_resize = function(resize_obj) {
     var sf = this;
     
 };
 
-SAFE.prototype.pre_load = function(class_name, parameters, url, wildcard_contents) {
+SAFEClass.prototype.pre_load = function(class_name, parameters, url, wildcard_contents) {
     var sf = this;
 
     //Must return undefined (null shows 404)
 };
 
-SAFE.prototype.transition_page = function(new_page, old_page){
+SAFEClass.prototype.transition_page = function(new_page, old_page){
     var sf = this;
 
     return false;
 }
 
-SAFE.prototype.parse_query_string = function(query_string) {
+SAFEClass.prototype.parse_query_string = function(query_string) {
     var query_split = query_string.split('&');
     var params = {};
     for (var i = 0; i < query_split.length; i++) {
@@ -81,7 +81,7 @@ SAFE.prototype.parse_query_string = function(query_string) {
     return params;
 }
 
-SAFE.prototype.build_query_string = function(params) {
+SAFEClass.prototype.build_query_string = function(params) {
     var query_string = "";
     var had_query_params = false;
     var ret = [];
@@ -96,7 +96,7 @@ SAFE.prototype.build_query_string = function(params) {
     return query_string;
 }
 
-SAFE.prototype.scroll_to_anchor = function(anchor){
+SAFEClass.prototype.scroll_to_anchor = function(anchor){
     var sf = this;
 
     if(anchor[0]!==undefined){
@@ -104,7 +104,7 @@ SAFE.prototype.scroll_to_anchor = function(anchor){
     }
 }
 
-SAFE.prototype.use_page_class = function(details){
+SAFEClass.prototype.use_page_class = function(details){
     var sf = this;
 
     var class_name = details.class_name;
@@ -146,7 +146,7 @@ SAFE.prototype.use_page_class = function(details){
                 }
 
             } else {
-                SAFE.console.error("The requested class ("+class_name+") was not found and dynamic class loading is not enabled");
+                SAFEClass.console.error("The requested class ("+class_name+") was not found and dynamic class loading is not enabled");
                 class_obj = null;
             }
         } else {
@@ -163,7 +163,7 @@ SAFE.prototype.use_page_class = function(details){
                 sf.current_page = null;
                 sf.previous_class = null;
             }
-            SAFE.console.error("No 404 page set. Use Site.set_no_page_found_class(class_name) to set one.");
+            SAFEClass.console.error("No 404 page set. Use Site.set_no_page_found_class(class_name) to set one.");
             return;
         } else {
             class_obj = sf.no_page_found_class;
@@ -233,18 +233,18 @@ SAFE.prototype.use_page_class = function(details){
     }
 }
 
-SAFE.prototype.set_no_page_found_class = function(class_name) {
+SAFEClass.prototype.set_no_page_found_class = function(class_name) {
     var sf = this;
     sf.no_page_found_class = class_name;
 }
 
 //Alias for set_no_page_found_class
-SAFE.prototype.set_404 = function(class_name) {
+SAFEClass.prototype.set_404 = function(class_name) {
     var sf = this;
     sf.no_page_found_class = class_name;
 }
 
-SAFE.prototype.ajax_post = function(request) {
+SAFEClass.prototype.ajax_post = function(request) {
     request.cache = false;
     request.type = "post";
     request.contentType = "application/json; charset=utf-8",
@@ -253,21 +253,21 @@ SAFE.prototype.ajax_post = function(request) {
     return $.ajax(request);
 }
 
-SAFE.prototype.ajax_get = function(request) {
+SAFEClass.prototype.ajax_get = function(request) {
     request.cache = false;
     request.dataType = "json";
     request.type = "get";
     return $.ajax(request);
 }
 
-SAFE.prototype.ajax_delete = function(request) {
+SAFEClass.prototype.ajax_delete = function(request) {
     request.cache = false;
     request.dataType = "json";
     request.type = "delete";
     return $.ajax(request);
 }
 
-SAFE.prototype.resize = function() {
+SAFEClass.prototype.resize = function() {
     var sf = this;
 
     var doc_width = $(document).width() - sf.scroll_bar_width();
@@ -291,7 +291,7 @@ SAFE.prototype.resize = function() {
     }
 }
 
-SAFE.prototype.init = function(desired_url) {
+SAFEClass.prototype.init = function(desired_url) {
     var sf = this;
 
     var path_name = window.location.pathname;
@@ -338,13 +338,13 @@ SAFE.prototype.init = function(desired_url) {
     sf.load_url(current_url, false);
 }
 
-SAFE.prototype.reload_page = function() {
+SAFEClass.prototype.reload_page = function() {
     var sf = this;
 
     sf.use_page_class(sf.current_class_and_details);
 }
 
-SAFE.prototype.replace_current_url = function(new_url, call_url_changed) {
+SAFEClass.prototype.replace_current_url = function(new_url, call_url_changed) {
     /* Change the current url without loading any new page or providing a new url to the current page. This function is rarely useful and should be avoided in most circumstances. */
     var sf = this;
 
@@ -365,13 +365,13 @@ SAFE.prototype.replace_current_url = function(new_url, call_url_changed) {
     }
 }
 
-SAFE.prototype.add_url = function(url, class_name) {
+SAFEClass.prototype.add_url = function(url, class_name) {
     var sf = this;
 
     sf.urls.push([url,class_name]);
 }
 
-SAFE.prototype.add_url_map = function(url_map, class_name) {
+SAFEClass.prototype.add_url_map = function(url_map, class_name) {
     var sf = this;
 
     for(var url in url_map){
@@ -380,7 +380,7 @@ SAFE.prototype.add_url_map = function(url_map, class_name) {
     }
 }
 
-SAFE.prototype.scroll_bar_width = function() {
+SAFEClass.prototype.scroll_bar_width = function() {
     var sf = this;
 
     if (sf.scroll_bar_width_value != -1) {
@@ -397,7 +397,7 @@ SAFE.prototype.scroll_bar_width = function() {
     return sf.scroll_bar_width_value;
 }
 
-SAFE.prototype.get_class_for_url = function(url_with_query) {
+SAFEClass.prototype.get_class_for_url = function(url_with_query) {
     var sf = this;
 
     var class_and_details = sf.get_class_and_details_for_url(url_with_query);
@@ -413,7 +413,7 @@ SAFE.prototype.get_class_for_url = function(url_with_query) {
     return null;
 }
 
-SAFE.prototype.get_class_and_details_for_url = function(url_with_query) {
+SAFEClass.prototype.get_class_and_details_for_url = function(url_with_query) {
     var sf = this;
 
     var query_params = {};
@@ -450,7 +450,7 @@ SAFE.prototype.get_class_and_details_for_url = function(url_with_query) {
             effective_path.length > url.length ||
             url.substring(0, effective_path.length) != effective_path
         ) {
-            SAFE.console.error("The requested url (" + url_with_query + ") was not relative to the domain/origin and within the Site.path scope");
+            SAFEClass.console.error("The requested url (" + url_with_query + ") was not relative to the domain/origin and within the Site.path scope");
             return null;
         }
         url = url.substring(effective_path.length - 1);
@@ -545,7 +545,7 @@ SAFE.prototype.get_class_and_details_for_url = function(url_with_query) {
 }
 
 //url_with_query must be relative to domain (not origin)
-SAFE.prototype.load_url = function(url_with_query, push_state) {
+SAFEClass.prototype.load_url = function(url_with_query, push_state) {
     var sf = this;
 
     var full_url = Site.origin + url_with_query;
@@ -569,7 +569,7 @@ SAFE.prototype.load_url = function(url_with_query, push_state) {
     sf.current_class_and_details = sf.get_class_and_details_for_url(url_with_query);
 
     if (sf.current_class_and_details.class_name == null) {
-        SAFE.console.error("Page not found for url (" + sf.current_class_and_details.url + "). The full url was (" + url_with_query + ")");
+        SAFEClass.console.error("Page not found for url (" + sf.current_class_and_details.url + "). The full url was (" + url_with_query + ")");
     }
     sf.use_page_class(sf.current_class_and_details);
 
@@ -584,4 +584,5 @@ SAFE.prototype.load_url = function(url_with_query, push_state) {
 }
 
 var Site;
-new SAFE();
+var SAFE;
+new SAFEClass();
