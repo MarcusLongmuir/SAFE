@@ -162,7 +162,7 @@
                             "contents": "SAFE.transition_page = function(new_page, old_page) {\n\n\t$('html, body').stop().animate({\n\t\t'scrollTop': 0\n\t},500);\n\n\tSAFE.element.append(new_page.element);\n\n\tif (old_page != null) {\n\t\tnew_page.element.hide().slideDown(500);\n\t\told_page.element.stop(true,true).slideUp(500, function() {\n            old_page.element.remove();\n\t\t})\n\t}\n\n\treturn true;\n}"
                         }
                     ],
-                    "text": "<p>The accordion example code provided performs the following:</p>\n<ul>\n<li><p>Appends the new page element</p>\n</li>\n<li><p>If there is an old page:</p>\n<ul>\n<li><p>Hides the new page</p>\n</li>\n<li><p>Calls jQuery&#39;s <code>.slideUp</code> function on the old page element with a duration of 500ms.</p>\n</li>\n<li><p>Simultaneously calls jQuery&#39;s <code>.slideDown</code> function on the new page elemnent with a duration of 500ms.</p>\n</li>\n<li><p>Removes the old page element upon animation completion.</p>\n</li>\n</ul>\n</li>\n</ul>\n"
+                    "text": "<p>The accordion example code provided performs the following:</p>\n<ul>\n<li><p>Appends the new page element</p>\n</li>\n<li><p>If there is an old page:</p>\n<ul>\n<li><p>Hides the new page</p>\n</li>\n<li><p>Calls jQuery&#39;s <code>.slideUp</code> function on the old page element with a duration of 500ms.</p>\n</li>\n<li><p>Simultaneously calls jQuery&#39;s <code>.slideDown</code> function on the new page element with a duration of 500ms.</p>\n</li>\n<li><p>Removes the old page element upon animation completion.</p>\n</li>\n</ul>\n</li>\n</ul>\n"
                 }
             ]
         }
