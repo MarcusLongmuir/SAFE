@@ -4,12 +4,27 @@
     "sections": [
         {
             "name": "Example",
-            "text": "SAFE/SimpleExample.md",
-            "code": [{
-                "path": "SAFE/SimpleExample.code",
-                "type": "html",
-                "runnable": true
-            }]
+            "text": "SAFE/Example/Example.md",
+            "sections":[
+                {
+                    "name":"Front End",
+                    "text": "SAFE/Example/FrontEnd/FrontEnd.md",
+                    "code": {
+                        "name": "index.html (public/index.html)",
+                        "path": "SAFE/Example/FrontEnd/ExampleIndex.code",
+                        "type": "html",
+                        "runnable": true
+                    }
+                },{
+                    "name":"Back End (Node.js)",
+                    "text": "SAFE/Example/BackEnd/BackEnd.md",
+                    "code": {
+                        "name": "app.js (node app)",
+                        "path": "SAFE/Example/BackEnd/ExampleNode.code",
+                        "type": "js"
+                    }
+                }
+            ]
         },
         {
             "name": "Get SAFE",

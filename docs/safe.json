@@ -4,25 +4,43 @@
     "sections": [
         {
             "name": "Example",
-            "code": [
+            "text": "<p>The runnable example below is split into the front end HTML file and an example server for node.js that shows how to serve the HTML file.</p>\n",
+            "sections": [
                 {
-                    "type": "html",
-                    "runnable": true,
-                    "contents": "<script src=\"http://code.jquery.com/jquery-1.11.0.min.js\"></script>\n<script src=\"__CURRENT_DOMAIN__/demo_files/safe.min.js\"></script>\n\n<script type=\"text/javascript\">\n\n\t//Define the HomePage\n\tSAFE.extend(HomePage, Page);\n\tfunction HomePage(req, previous_page){\n\t\tvar page = this;\n\t\tHomePage.superConstructor.call(this);\n\t\tpage.element.addClass(\"home_page\").append(\n\t\t\t$(\"<div />\").text(\"Home Page!\")\n\t\t\t,\n\t\t\t$(\"<a/>\",{\"href\":SAFE.path+\"about/john_smith?my_param=3}).ajax_url().text(\"Go to /about/john_smith?my_param=3\")\n\t\t)\n\t}\n\tSAFE.add_url(\"/index.html\",HomePage);\n\n\t//Define the AboutPage\n\tSAFE.extend(AboutPage, Page);\n\tfunction AboutPage(req, previous_page){\n\t\tvar page = this;\n\t\tAboutPage.superConstructor.call(this);\n\t\tpage.element.addClass(\"about_page\").append(\n\t\t\t$(\"<div />\").text(\"About Page!\")\n\t\t\t,\n\t\t\t$(\"<pre />\").text(JSON.stringify(req,null,4))\n\t\t\t,\n\t\t\t$(\"<a/>\",{\"href\",SAFE.path+\"index.html\"}).ajax_url().text(\"Go to home page\")\n\t\t)\n\t}\n\tSAFE.add_url(\"/about/:username\",AboutPage);\n\n\t$(document).ready(function(){\n\n\t\t$(\"<div />\").text(\"No-reload proof: \"+Math.random()).appendTo(\"body\");\n\n\t\tSAFE.element.appendTo(\"body\");\n\n\t\t//Remove this line if you're not using the demo environment\n\t\tSAFE.path = window.location.pathname.replace(/[^\\\\\\/]*$/, '');\n\t\t\n\t\tSAFE.init();\n\t});\n</script>"
+                    "name": "Front End",
+                    "code": [
+                        {
+                            "name": "index.html (public/index.html)",
+                            "type": "html",
+                            "runnable": true,
+                            "contents": "<script src=\"http://code.jquery.com/jquery-1.11.0.min.js\"></script>\n<script src=\"__CURRENT_DOMAIN__/demo_files/safe.min.js\"></script>\n\n<script type=\"text/javascript\">\n\n\t//Define the HomePage\n\tSAFE.extend(HomePage, Page);\n\tfunction HomePage(req, previous_page){\n\t\tvar page = this;\n\t\tHomePage.superConstructor.call(this);\n\t\tpage.element.addClass(\"home_page\").append(\n\t\t\t$(\"<div />\").text(\"Home Page!\")\n\t\t\t,\n\t\t\t$(\"<a/>\",{\"href\":SAFE.path+\"about/john_smith?my_param=3\"}).ajax_url().text(\"Go to /about/john_smith?my_param=3\")\n\t\t)\n\t}\n\tSAFE.add_url(\"/index.html\",HomePage);\n\n\t//Define the AboutPage\n\tSAFE.extend(AboutPage, Page);\n\tfunction AboutPage(req, previous_page){\n\t\tvar page = this;\n\t\tAboutPage.superConstructor.call(this);\n\t\tpage.element.addClass(\"about_page\").append(\n\t\t\t$(\"<div />\").text(\"About Page!\")\n\t\t\t,\n\t\t\t$(\"<pre />\").text(JSON.stringify(req,null,4))\n\t\t\t,\n\t\t\t$(\"<a/>\",{\"href\":SAFE.path+\"index.html\"}).ajax_url().text(\"Go to home page\")\n\t\t)\n\t}\n\tSAFE.add_url(\"/about/:username\",AboutPage);\n\n\t$(document).ready(function(){\n\n\t\t$(\"<div />\").text(\"No-reload proof: \"+Math.random()).appendTo(\"body\");\n\n\t\tSAFE.element.appendTo(\"body\");\n\n\t\t//Remove this line if you're not using the demo environment\n\t\tSAFE.path = window.location.pathname.replace(/[^\\\\\\/]*$/, '');\n\t\t\n\t\tSAFE.init();\n\t});\n</script>"
+                        }
+                    ],
+                    "text": "<p>The example to the right shows an extremely simple SAFE site - just two pages with links between them. Click the &quot;Run on CodePen&quot; button to  try it out.</p>\n<p>The example first includes <a href=\"http://jquery.com\">jQuery</a> and the <code>safe.min.js</code> file. <code>The safe.min.js</code> file will create a <code>SAFE</code> singleton that acts as a controller for all page loading and url handling.</p>\n<p>Two pages are defined (<code>HomePage</code> and <code>AboutPage</code>) by <code>SAFE.extend</code>ing <code>Page</code>. Each page is assigned a URL that it will respond to using <code>SAFE.add_url</code>.</p>\n<p>Internal links - those linking to pages within the site - should use the <code>ajax_url</code> plugin. This plugin prevents the default action (unless opened in a new tab or cmd/ctrl clicked) and loads the URL using SAFE.</p>\n<p>The <code>SAFE.path</code> value is used to specify the folder within the domain that the site is contained within. For example, if the &quot;homepage&quot; for the site was accessible at <a href=\"http://example.com/my_site/\">http://example.com/my_site/</a> then the <code>SAFE.path</code> would be <code>&quot;/my_site/&quot;</code>. If the site&#39;s root is the domain then <code>SAFE.path</code> should be ignored. For the purposes of this example, it has been set to the first url that is opened to make it work on CodePen.</p>\n<p><code>SAFE.init</code> loads the current address.</p>\n"
+                },
+                {
+                    "name": "Back End (Node.js)",
+                    "code": [
+                        {
+                            "name": "app.js (node app)",
+                            "type": "js",
+                            "contents": "var express = require('express');\nvar http = require('http');\nvar path = require('path');\n\nvar app = express();\napp.set('port', process.env.PORT || 5000);\napp.use(express.static(path.join(__dirname, 'public')));\n\n//Serve the same html file for all paths (if a static file wasn't served)\napp.use('/*', function(req, res) {\n    res.sendFile('public/index.html');\n});\nhttp.createServer(app).listen(app.get('port'), function() {\n    console.log('Server started on port ' + app.get('port'));\n});"
+                        }
+                    ],
+                    "text": "<p>The same HTML file should be served for every route that SAFE will handle. This can be achieved in <a href=\"http://nodejs.org\">Node</a> using the code provided on the right (also found in the &quot;minimal&quot; example in the <a href=\"https://github.com/SuperAwesomeLTD/SAFE/\">SAFE project repository</a>).</p>\n<p>This code will serve <code>public/index.html</code> for every request that doesn&#39;t get served by a static file.</p>\n"
                 }
-            ],
-            "text": "<p>The example to the right shows an extremely simple SAFE site - just two pages with links between them. Click the &quot;Run on CodePen&quot; button to  try it out.</p>\n<p>The example first includes <a href=\"http://jquery.com\">jQuery</a> and the <code>safe.min.js</code> file. <code>The safe.min.js</code> file will create a <code>SAFE</code> singleton that acts as a controller for all page loading and url handling.</p>\n<p>Two pages are defined (<code>HomePage</code> and <code>AboutPage</code>) by <code>SAFE.extend</code>ing <code>Page</code>. Each page is assigned a URL that it will respond to using <code>SAFE.add_url</code>.</p>\n<p>Internal links - those linking to pages within the site - should use the <code>ajax_url</code> plugin. This plugin prevents the default action (unless opened in a new tab or cmd/ctrl clicked) and loads the URL using SAFE.</p>\n<p>The <code>SAFE.path</code> value is used to specify the folder within the domain that the site is contained within. For example, if the &quot;homepage&quot; for the site was accessible at <a href=\"http://example.com/my_site/\">http://example.com/my_site/</a> then the <code>SAFE.path</code> would be <code>&quot;/my_site/&quot;</code>. If the site&#39;s root is the domain then <code>SAFE.path</code> should be ignored. For the purposes of this example, it has been set to the first url that is opened to make it work on CodePen.</p>\n<p><code>SAFE.init</code> loads the current address.</p>\n"
+            ]
         },
         {
             "name": "Get SAFE",
-            "text": "<p>SAFE should be included at the top of your HTML file. The same HTML file should be served for every path that SAFE will handle. This can be achieved in <a href=\"http://nodejs.org\">Node</a> using the code provided on the right (also found in the &quot;minimal&quot; example in the SAFE project repository).</p>\n<h4 id=\"jquery-dependency-\">jQuery Dependency:</h4>\n<p>SAFE requires <a href=\"http://jquery.com\">jQuery</a> is included prior to the <code>safe.min.js</code> file. If you do not already have jQuery as part of your project, you will need to add it.</p>\n",
+            "text": "<p>SAFE should be included at the top of your HTML file that will be served for each route that SAFE will handle (see example node app above).</p>\n<h4 id=\"jquery-dependency-\">jQuery Dependency:</h4>\n<p>SAFE requires <a href=\"http://jquery.com\">jQuery</a> is included prior to the <code>safe.min.js</code> file. If you do not already have jQuery as part of your project, you will need to add it.</p>\n",
             "sections": [
                 {
                     "name": "Bower",
                     "code": [
                         {
                             "name": "bower.json",
-                            "contents": "{\n  \"name\": \"YOUR-APP-NAME\",\n  \"version\": \"0.0.1\",\n  \"devDependencies\": {\n    \"jquery\": \"1.11.1\",\n    \"safe\" : \"*\"\n  },\n  \"private\": true\n}"
+                            "contents": "{\n  \"name\": \"YOUR-APP-NAME\",\n  \"version\": \"0.0.1\",\n  \"dependencies\": {\n    \"jquery\": \"1.11.1\",\n    \"safe\" : \"*\"\n  },\n  \"private\": true\n}"
                         },
                         {
                             "name": "index.html",
@@ -144,7 +162,7 @@
                             "contents": "SAFE.transition_page = function(new_page, old_page) {\n\n\t$('html, body').stop().animate({\n\t\t'scrollTop': 0\n\t},500);\n\n\tSAFE.element.append(new_page.element);\n\n\tif (old_page != null) {\n\t\tnew_page.element.hide().slideDown(500);\n\t\told_page.element.stop(true,true).slideUp(500, function() {\n            old_page.element.remove();\n\t\t})\n\t}\n\n\treturn true;\n}"
                         }
                     ],
-                    "text": "<p>The accordion example code provided performs the following:</p>\n<ul>\n<li><p>Appends the new page element</p>\n</li>\n<li><p>If there is an old page:</p>\n<ul>\n<li><p>Hides the new page</p>\n</li>\n<li><p>Calls jQuery&#39;s <code>.slideUp</code> function on the old page element with a duration of 500ms.</p>\n</li>\n<li><p>Simultaneously calls jQuery&#39;s <code>.slideDown</code> function on the new page elemnent with a duration of 500ms.</p>\n</li>\n<li><p>Removes the old page element upon animation completion.</p>\n</li>\n</ul>\n</li>\n</ul>\n"
+                    "text": "<p>The accordion example code provided performs the following:</p>\n<ul>\n<li><p>Appends the new page element</p>\n</li>\n<li><p>If there is an old page:</p>\n<ul>\n<li><p>Hides the new page</p>\n</li>\n<li><p>Calls jQuery&#39;s <code>.slideUp</code> function on the old page element with a duration of 500ms.</p>\n</li>\n<li><p>Simultaneously calls jQuery&#39;s <code>.slideDown</code> function on the new page element with a duration of 500ms.</p>\n</li>\n<li><p>Removes the old page element upon animation completion.</p>\n</li>\n</ul>\n</li>\n</ul>\n"
                 }
             ]
         }

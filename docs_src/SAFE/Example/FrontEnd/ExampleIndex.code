@@ -11,7 +11,7 @@
 		page.element.addClass("home_page").append(
 			$("<div />").text("Home Page!")
 			,
-			$("<a/>",{"href":SAFE.path+"about/john_smith?my_param=3}).ajax_url().text("Go to /about/john_smith?my_param=3")
+			$("<a/>",{"href":SAFE.path+"about/john_smith?my_param=3"}).ajax_url().text("Go to /about/john_smith?my_param=3")
 		)
 	}
 	SAFE.add_url("/index.html",HomePage);
@@ -26,7 +26,7 @@
 			,
 			$("<pre />").text(JSON.stringify(req,null,4))
 			,
-			$("<a/>",{"href",SAFE.path+"index.html"}).ajax_url().text("Go to home page")
+			$("<a/>",{"href":SAFE.path+"index.html"}).ajax_url().text("Go to home page")
 		)
 	}
 	SAFE.add_url("/about/:username",AboutPage);

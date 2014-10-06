@@ -8,7 +8,7 @@ app.use(express.static(path.join(__dirname, '../public')));
 
 //Serve the same html file (if a static file wasn't served)
 app.get('/*', function(req, res) {
-    res.sendfile(path.join(__dirname, '../public_src/root.html'));
+    res.sendFile(path.join(__dirname, '../public_src/root.html'));
 });
 
 http.createServer(app).listen(app.get('port'), function() {
