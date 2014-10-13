@@ -12870,10 +12870,6 @@ Page.prototype.new_url = function() {
     return "NOT_SET";
 }
 
-Page.prototype.get_title = function() {
-    return null;
-}
-
 Page.prototype.resize = function(resize_obj) {}
 
 Page.prototype.init = function() {}
@@ -13425,6 +13421,10 @@ SAFEClass.prototype.get_class_and_details_for_url = function(url_with_query) {
 SAFEClass.prototype.load_url = function(url_with_query, push_state) {
     var sf = this;
 
+    if(typeof push_state === 'undefined'){
+        push_state = true;
+    }
+
     var full_url = Site.origin + url_with_query;
 
     if (!sf.history_state_supported) {
@@ -13644,7 +13644,7 @@ Header.prototype.resize = function(resize_obj) {
     var header = this;
 }
 
-var page_title_append = "SAFE. Example Site";
+var page_title_append = "SAFE Example Site";
 
 $(document).ready(function(){
 
