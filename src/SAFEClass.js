@@ -548,6 +548,10 @@ SAFEClass.prototype.get_class_and_details_for_url = function(url_with_query) {
 SAFEClass.prototype.load_url = function(url_with_query, push_state) {
     var sf = this;
 
+    if(typeof push_state === 'undefined'){
+        push_state = true;
+    }
+
     var full_url = Site.origin + url_with_query;
 
     if (!sf.history_state_supported) {
