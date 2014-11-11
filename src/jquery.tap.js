@@ -157,7 +157,6 @@
         var delta = Math.max(xDelta, yDelta);
 
         return (
-            e.timeStamp - startEvent.timeStamp < $.tap.TIME_DELTA &&
             delta < $.tap.POSITION_DELTA &&
             (!startEvent.touches || TOUCH_VALUES.count === 1) &&
             Tap.isTracking
@@ -390,7 +389,6 @@
     // Configurable options
     $.tap = {
         POSITION_DELTA: 10, // Max distance between touchstart and touchend to be considered a tap
-        TIME_DELTA: 400, // Max duration between touchstart and touchend to be considered a tap
         LEFT_BUTTON_ONLY: true // Only accept left mouse button actions
     };
 

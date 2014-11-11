@@ -2313,7 +2313,6 @@
         var delta = Math.max(xDelta, yDelta);
 
         return (
-            e.timeStamp - startEvent.timeStamp < $.tap.TIME_DELTA &&
             delta < $.tap.POSITION_DELTA &&
             (!startEvent.touches || TOUCH_VALUES.count === 1) &&
             Tap.isTracking
@@ -2546,7 +2545,6 @@
     // Configurable options
     $.tap = {
         POSITION_DELTA: 10, // Max distance between touchstart and touchend to be considered a tap
-        TIME_DELTA: 400, // Max duration between touchstart and touchend to be considered a tap
         LEFT_BUTTON_ONLY: true // Only accept left mouse button actions
     };
 
@@ -2762,7 +2760,7 @@ SAFEClass.prototype.use_page_class = function(details){
             return;
         } else {
             //Load as URL
-            sf.load_url(pre_load_response, true);
+            sf.load_url(pre_load_response, false);
         }
         return;
     }
@@ -3116,7 +3114,12 @@ SAFEClass.prototype.load_url = function(url_with_query, push_state) {
         push_state = true;
     }
 
-    var full_url = Site.origin + url_with_query;
+    var full_url;
+    if(url_with_query.substring(0,Site.origin.length)===Site.origin){
+        full_url = url_with_query;
+    } else {
+        full_url = Site.origin + url_with_query;
+    }
 
     if (!sf.history_state_supported) {
         var target = encodeURI(full_url);
@@ -3129,6 +3132,8 @@ SAFEClass.prototype.load_url = function(url_with_query, push_state) {
             sf.ignore_next_url = true;
             History.pushState(null, "", full_url);
             sf.previous_url = full_url;
+        } else {
+            History.replaceState(null, "", full_url);
         }
     }
 
