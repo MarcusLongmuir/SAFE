@@ -215,7 +215,7 @@ SAFEClass.prototype.use_page_class = function(details){
     //Call before page transition to give the opportunity to correctly size any page elements
     sf.resize();
 
-    var transition_response = sf.transition_page(sf.current_page, old_page);
+    var transition_response = sf.transition_page(sf.current_page, old_page, details_for_page);
 
     if (transition_response === true) {
         //The callback handled the page switching
