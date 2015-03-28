@@ -13,3 +13,9 @@ Wildcards can also be used and are provided in the request object's parameters u
 ```javascript
 SAFE.add_url("/doc/*", DocumentPage);
 ```
+
+To specify a class to show in the event that none of the routes match, use ```set_404```:
+
+```javascript
+SAFE.set_404(NotFoundPage);
+```
