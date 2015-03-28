@@ -186,6 +186,29 @@ SAFEClass.prototype.use_page_class = function(details){
         old_page = sf.current_page;
     }
 
+    var redirect_response;
+    if(typeof class_obj.redirect === 'function'){
+        redirect_response = class_obj.redirect(details);
+    } else if(typeof class_obj.prototype.redirect === 'function'){
+        console.log(class_obj.prototype.redirect);
+        redirect_response = class_obj.prototype.redirect(details);
+    }
+    if (redirect_response !== undefined) {
+        if((typeof redirect_response) === 'function'){
+            //Given a class
+        } else if(redirect_response===null){
+            //Load the 404 page
+            details.class_name = null;
+            sf.use_page_class(details);
+            return;
+        } else {
+            //Load as URL
+            sf.load_url(redirect_response, false);
+        }
+        return;
+    }
+
+
     var pre_load_response = sf.pre_load(class_obj, details, old_page);
 
     if (pre_load_response !== undefined) {
