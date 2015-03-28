@@ -58,7 +58,7 @@ SAFEClass.prototype.on_resize = function(resize_obj) {
     
 };
 
-SAFEClass.prototype.pre_load = function(class_name, parameters, url, wildcard_contents) {
+SAFEClass.prototype.pre_load = function(class_obj, details, old_page) {
     var sf = this;
 
     //Must return undefined (null shows 404)
@@ -363,6 +363,20 @@ SAFEClass.prototype.replace_current_url = function(new_url, call_url_changed) {
             false
         );
     }
+}
+
+SAFEClass.prototype.add_history_state = function(url){
+    var sf = this;
+
+    var full_url;
+    if(url.substring(0,Site.origin.length)===Site.origin){
+        full_url = url;
+    } else {
+        full_url = Site.origin + url;
+    }
+
+    sf.ignore_next_url = true;
+    History.pushState(null, "", full_url);
 }
 
 SAFEClass.prototype.add_url = function(url, class_name) {

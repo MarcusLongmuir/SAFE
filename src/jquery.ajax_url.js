@@ -1,6 +1,7 @@
 (function($) {
     $.fn.ajax_url = function(custom_trigger, on_trigger) {
         var element = this;
+        element.off('tap');
         element.on('tap',function(event) {
             var custom_trigger_return = null;
             if (custom_trigger != null) {
