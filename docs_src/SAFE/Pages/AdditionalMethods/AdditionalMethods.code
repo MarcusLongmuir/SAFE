@@ -11,6 +11,18 @@ function MyPage(req, previous_page){
 	)
 }
 
+MyPage.redirect = function(req) {
+	var page = this;
+
+	console.log("MyPage.redirect called with req:",req);
+
+	if(!user){
+		return "/login"; // Return a string to redirect to the specified URL
+		return LoginPage; // Return a class to load that class instead
+		return null; // Return null to load the 404 page
+	}
+}
+
 MyPage.prototype.new_url = function(req) {
 	var page = this;
 
