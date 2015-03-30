@@ -2753,7 +2753,6 @@ SAFEClass.prototype.use_page_class = function(details){
     if(typeof class_obj.redirect === 'function'){
         redirect_response = class_obj.redirect(details);
     } else if(typeof class_obj.prototype.redirect === 'function'){
-        console.log(class_obj.prototype.redirect);
         redirect_response = class_obj.prototype.redirect(details);
     }
     if (redirect_response !== undefined) {
