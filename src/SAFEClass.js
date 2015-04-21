@@ -463,7 +463,7 @@ SAFEClass.prototype.get_class_and_details_for_url = function(url_with_query) {
         query_params = sf.parse_query_string(url_split[1]);
     }
 
-    var url = decodeURIComponent(url_split[0]);
+    var url = url_split[0];
 
     if (url.length >= sf.origin.length) {
         if (url.substring(0, sf.origin.length) == sf.origin) {
@@ -544,7 +544,7 @@ SAFEClass.prototype.get_class_and_details_for_url = function(url_with_query) {
             var part = url_parts[k];
             if(map_part[0]===":"){
                 var param_name = map_part.substring(1);
-                this_url_params[param_name] = part;
+                this_url_params[param_name] = decodeURIComponent(part);
             } else if(map_part[0]==="*"){
                 is_valid = true;
                 had_wildcard = true;
