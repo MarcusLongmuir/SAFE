@@ -170,14 +170,12 @@ SAFEClass.prototype.use_page_class = function(details){
         }
     }
 
-    if (class_obj === sf.previous_class) {
+    if (class_obj === sf.previous_class && sf.current_page.new_url) {
         var new_url_response = sf.current_page.new_url(details);
-        if (new_url_response != "NOT_SET") {
-            if(details.anchor){
-                sf.scroll_to_anchor($("a[name*='"+details.anchor+"']"));
-            }
-            return;
+        if(details.anchor){
+            sf.scroll_to_anchor($("a[name*='"+details.anchor+"']"));
         }
+        return;
     }
 
     var old_page = null;
@@ -602,13 +600,14 @@ SAFEClass.prototype.load_url = function(url_with_query, push_state) {
             return;
         }
     } else {
+        sf.ignore_next_url = true;
         if (push_state) {
-            sf.ignore_next_url = true;
             History.pushState(null, "", full_url);
             sf.previous_url = full_url;
         } else {
             History.replaceState(null, "", full_url);
         }
+        sf.ignore_next_url = false;
     }
 
     sf.current_url = full_url;
