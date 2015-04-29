@@ -2901,7 +2901,7 @@ SAFEClass.prototype.init = function(desired_url) {
             }
             var state = History.getState();
             if (state != null) {
-                sf.load_url(decodeURI(state.url), false);
+                sf.load_url(state.url, false);
             }
         });
     }
