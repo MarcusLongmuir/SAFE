@@ -227,8 +227,14 @@ SAFEClass.prototype.use_page_class = function(details){
     //Would create a circular structure if details were output via JSON.stringify
     delete details_for_page.class_name;
 
-    var new_page = new class_obj(details_for_page, old_page);
-    sf.current_page = new_page;
+    /* Anonymous class used to get a reference to the new page before 
+     * calling the constructor such that SAFE.current_page works in the 
+     * constructor. */
+    var anon_class = function(){};
+    anon_class.prototype = class_obj.prototype;
+    sf.current_page = new anon_class();
+
+    var new_page = class_obj.call(sf.current_page, details_for_page, old_page);
     sf.previous_class = class_obj;
 
     //Call before page transition to give the opportunity to correctly size any page elements
