@@ -159,7 +159,9 @@ SAFEClass.prototype.use_page_class = function(details){
     if (class_obj == null) { //404
         if (sf.no_page_found_class == null) {
             if (sf.current_page != null) {
-                sf.current_page.remove();
+                if(sf.current_page.remove){
+                    sf.current_page.remove();
+                }
                 sf.current_page = null;
                 sf.previous_class = null;
             }
@@ -201,7 +203,9 @@ SAFEClass.prototype.use_page_class = function(details){
 
     var old_page = null;
     if (sf.current_page != null) {
-        sf.current_page.remove();
+        if(sf.current_page.remove){
+            sf.current_page.remove();
+        }
         old_page = sf.current_page;
     }
 
@@ -248,7 +252,9 @@ SAFEClass.prototype.use_page_class = function(details){
         sf.element.empty();
         sf.element.append(sf.current_page.element);
     }
-    sf.current_page.init();
+    if(sf.current_page.init){
+        sf.current_page.init();
+    }
 
     //Call the global resize function to correctly position everything
     sf.resize();
@@ -311,7 +317,7 @@ SAFEClass.prototype.resize = function() {
 
     sf.on_resize(sf.resize_obj);
 
-    if (sf.current_page != null) {
+    if (sf.current_page != null && sf.current_page.resize) {
         sf.current_page.resize(sf.resize_obj);
     }
 }
