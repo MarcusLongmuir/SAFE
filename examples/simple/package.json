@@ -2,13 +2,13 @@
     "name": "safe-example-simple",
     "private": true,
     "dependencies": {
-        "express": "*"
+        "express": "4.12.4"
     },
     "devDependencies": {
         "bower": "*",
         "gulp": "^3.6.1",
         "gulp-util": "^2.2.14",
-        "gulp-nodemon" : "*",
+        "gulp-nodemon" : "^2.0.3",
         "gulp-imports" : "MarcusLongmuir/gulp-imports",
         "gulp-less": "^1.2.3",
         "gulp-concat": "^2.2.0",

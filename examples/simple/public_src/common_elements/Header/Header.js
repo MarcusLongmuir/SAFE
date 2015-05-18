@@ -2,17 +2,14 @@ function Header() {
     var header = this;
 
     header.element = $("<div />").append(
-        $("<a />",{"href":"/"})
+        $("<a />",{"href":"/"}).ajax_url()
         .text("HomePage ")
-        .ajax_url()
     ,
-        $("<a />",{"href":"/pagetwo/"})
+        $("<a />",{"href":"/pagetwo/"}).ajax_url()
         .text("PageTwo ")
-        .ajax_url()
     ,
-        $("<a />",{"href":"/param_page/came_from_header"})
+        $("<a />",{"href":"/param_page/came_from_header"}).ajax_url()
         .text("ParamPage ")
-        .ajax_url()
     ,
         $("<span />")
         .text("This header changes color only when the page is reloaded")
@@ -26,4 +23,6 @@ function Header() {
 
 Header.prototype.resize = function(resize_obj) {
     var header = this;
+
+    //Can react to resizing
 }

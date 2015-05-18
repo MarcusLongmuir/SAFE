@@ -23,11 +23,14 @@ $(document).ready(function(){
     var page_holder = SAFE.element.addClass("page_holder").appendTo("body");
 
 	SAFE.transition_page = function(new_page,old_page){
-		var title = new_page.get_title();
-		if(title==null){
-			document.title = page_title_append;
+		var title;
+		if(new_page.get_title){
+			title = new_page.get_title();
+		}
+		if(title){
+			document.title = title + " - " + page_title_append;
 		} else {
-			document.title = new_page.get_title() + " - " + page_title_append;
+			document.title = page_title_append;
 		}
 	}
 
