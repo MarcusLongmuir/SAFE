@@ -1,6 +1,5 @@
 (function($) {
-    $.fn.ajax_url = function(custom_trigger, on_trigger) {
-        var element = this;
+    var ajaxify = function(element, custom_trigger, on_trigger){
         element.off('tap');
         element.on('tap',function(event) {
             var custom_trigger_return = null;
@@ -29,7 +28,19 @@
                 event.preventDefault();
             }
         });
+    }
 
-        return element;
+    $.fn.ajax_url = function(custom_trigger, on_trigger) {
+        return this.each(function(){
+            
+            if($(this).is("a")){
+                ajaxify($(this), custom_trigger, on_trigger);
+            }
+
+            $(this).find("a").each(function(){
+                var element = $(this, custom_trigger, on_trigger);
+                ajaxify(element);
+            });
+        });
     };
 })(jQuery);
