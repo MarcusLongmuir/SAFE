@@ -55,7 +55,6 @@ SAFEClass.prototype.url_changed = function(url) {
 
 SAFEClass.prototype.on_resize = function(resize_obj) {
     var sf = this;
-    
 };
 
 SAFEClass.prototype.pre_load = function(class_obj, details, old_page) {
@@ -138,7 +137,6 @@ SAFEClass.prototype.use_page_class = function(details){
                     }
                 });
 
-
                 if(sf.loading_page!==null){
                     class_obj = sf.loading_page;
                 } else {
@@ -195,10 +193,16 @@ SAFEClass.prototype.use_page_class = function(details){
 
     if (class_obj === sf.previous_class && sf.current_page.new_url) {
         var new_url_response = sf.current_page.new_url(details);
-        if(details.anchor){
-            sf.scroll_to_anchor($("a[name*='"+details.anchor+"']"));
+
+        if(new_url_response===false){
+            //Explicit false - the page doesn't want to handle this request
+        } else {
+            //The page is handling this request
+            if(details.anchor){
+                sf.scroll_to_anchor($("a[name*='"+details.anchor+"']"));
+            }
+            return;
         }
-        return;
     }
 
     var old_page = null;
@@ -231,8 +235,8 @@ SAFEClass.prototype.use_page_class = function(details){
     //Would create a circular structure if details were output via JSON.stringify
     delete details_for_page.class_name;
 
-    /* Anonymous class used to get a reference to the new page before 
-     * calling the constructor such that SAFE.current_page works in the 
+    /* Anonymous class used to get a reference to the new page before
+     * calling the constructor such that SAFE.current_page works in the
      * constructor. */
     var anon_class = function(){};
     anon_class.prototype = class_obj.prototype;
