@@ -1,9 +1,10 @@
 @import("../bower_components/jquery/dist/jquery.js");
 @import("../bower_components/safe/safe.js");
+@import("../bower_components/react/react.js");
 @import("pages/pages.js");
 @import("common_elements/common_elements.js");
 
-var page_title_append = "SAFE Example Site";
+var page_title_append = "SAFE Example Site (React)";
 
 $(document).ready(function(){
 

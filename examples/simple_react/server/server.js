@@ -3,7 +3,7 @@ var http = require('http');
 var path = require('path');
 
 var app = express();
-app.set('port', process.env.PORT || 5001);
+app.set('port', process.env.PORT || 5002);
 app.use(express.static(path.join(__dirname, '../public')));
 
 //Serve the same html file (if a static file wasn't served)

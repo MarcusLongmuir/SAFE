@@ -12430,8 +12430,7 @@ return jQuery;
 })(window);
 
 (function($) {
-    $.fn.ajax_url = function(custom_trigger, on_trigger) {
-        var element = this;
+    var ajaxify = function(element, custom_trigger, on_trigger){
         element.off('tap');
         element.on('tap',function(event) {
             var custom_trigger_return = null;
@@ -12460,8 +12459,20 @@ return jQuery;
                 event.preventDefault();
             }
         });
+    }
 
-        return element;
+    $.fn.ajax_url = function(custom_trigger, on_trigger) {
+        return this.each(function(){
+            
+            if($(this).is("a")){
+                ajaxify($(this), custom_trigger, on_trigger);
+            }
+
+            $(this).find("a").each(function(){
+                var element = $(this, custom_trigger, on_trigger);
+                ajaxify(element);
+            });
+        });
     };
 })(jQuery);
 /**
@@ -12865,10 +12876,6 @@ function Page() {
     page.element = $("<div />");
 }
 
-Page.prototype.new_url = function() {
-    return "NOT_SET";
-}
-
 Page.prototype.resize = function(resize_obj) {}
 
 Page.prototype.init = function() {}
@@ -13031,7 +13038,9 @@ SAFEClass.prototype.use_page_class = function(details){
     if (class_obj == null) { //404
         if (sf.no_page_found_class == null) {
             if (sf.current_page != null) {
-                sf.current_page.remove();
+                if(sf.current_page.remove){
+                    sf.current_page.remove();
+                }
                 sf.current_page = null;
                 sf.previous_class = null;
             }
@@ -13042,19 +13051,40 @@ SAFEClass.prototype.use_page_class = function(details){
         }
     }
 
-    if (class_obj === sf.previous_class) {
-        var new_url_response = sf.current_page.new_url(details);
-        if (new_url_response != "NOT_SET") {
-            if(details.anchor){
-                sf.scroll_to_anchor($("a[name*='"+details.anchor+"']"));
-            }
+    var redirect_response;
+    if(typeof class_obj.redirect === 'function'){
+        redirect_response = class_obj.redirect(details);
+    } else if(typeof class_obj.prototype.redirect === 'function'){
+        redirect_response = class_obj.prototype.redirect(details);
+    }
+    if (redirect_response !== undefined) {
+        if((typeof redirect_response) === 'function'){
+            //Given a class
+        } else if(redirect_response===null){
+            //Load the 404 page
+            details.class_name = null;
+            sf.use_page_class(details);
             return;
+        } else {
+            //Load as URL
+            sf.load_url(redirect_response, false);
         }
+        return;
+    }
+
+    if (class_obj === sf.previous_class && sf.current_page.new_url) {
+        var new_url_response = sf.current_page.new_url(details);
+        if(details.anchor){
+            sf.scroll_to_anchor($("a[name*='"+details.anchor+"']"));
+        }
+        return;
     }
 
     var old_page = null;
     if (sf.current_page != null) {
-        sf.current_page.remove();
+        if(sf.current_page.remove){
+            sf.current_page.remove();
+        }
         old_page = sf.current_page;
     }
 
@@ -13080,8 +13110,14 @@ SAFEClass.prototype.use_page_class = function(details){
     //Would create a circular structure if details were output via JSON.stringify
     delete details_for_page.class_name;
 
-    var new_page = new class_obj(details_for_page, old_page);
-    sf.current_page = new_page;
+    /* Anonymous class used to get a reference to the new page before 
+     * calling the constructor such that SAFE.current_page works in the 
+     * constructor. */
+    var anon_class = function(){};
+    anon_class.prototype = class_obj.prototype;
+    sf.current_page = new anon_class();
+
+    var new_page = class_obj.call(sf.current_page, details_for_page, old_page);
     sf.previous_class = class_obj;
 
     //Call before page transition to give the opportunity to correctly size any page elements
@@ -13095,7 +13131,9 @@ SAFEClass.prototype.use_page_class = function(details){
         sf.element.empty();
         sf.element.append(sf.current_page.element);
     }
-    sf.current_page.init();
+    if(sf.current_page.init){
+        sf.current_page.init();
+    }
 
     //Call the global resize function to correctly position everything
     sf.resize();
@@ -13158,7 +13196,7 @@ SAFEClass.prototype.resize = function() {
 
     sf.on_resize(sf.resize_obj);
 
-    if (sf.current_page != null) {
+    if (sf.current_page != null && sf.current_page.resize) {
         sf.current_page.resize(sf.resize_obj);
     }
 }
@@ -13194,7 +13232,7 @@ SAFEClass.prototype.init = function(desired_url) {
             }
             var state = History.getState();
             if (state != null) {
-                sf.load_url(decodeURI(state.url), false);
+                sf.load_url(state.url, false);
             }
         });
     }
@@ -13313,7 +13351,7 @@ SAFEClass.prototype.get_class_and_details_for_url = function(url_with_query) {
         query_params = sf.parse_query_string(url_split[1]);
     }
 
-    var url = decodeURIComponent(url_split[0]);
+    var url = url_split[0];
 
     if (url.length >= sf.origin.length) {
         if (url.substring(0, sf.origin.length) == sf.origin) {
@@ -13394,7 +13432,7 @@ SAFEClass.prototype.get_class_and_details_for_url = function(url_with_query) {
             var part = url_parts[k];
             if(map_part[0]===":"){
                 var param_name = map_part.substring(1);
-                this_url_params[param_name] = part;
+                this_url_params[param_name] = decodeURIComponent(part);
             } else if(map_part[0]==="*"){
                 is_valid = true;
                 had_wildcard = true;
@@ -13452,13 +13490,14 @@ SAFEClass.prototype.load_url = function(url_with_query, push_state) {
             return;
         }
     } else {
+        sf.ignore_next_url = true;
         if (push_state) {
-            sf.ignore_next_url = true;
             History.pushState(null, "", full_url);
             sf.previous_url = full_url;
         } else {
             History.replaceState(null, "", full_url);
         }
+        sf.ignore_next_url = false;
     }
 
     sf.current_url = full_url;
@@ -13483,172 +13522,109 @@ SAFEClass.prototype.load_url = function(url_with_query, push_state) {
 var Site;
 var SAFE;
 new SAFEClass();
-SAFE.extend(HomePage, Page);
-
 function HomePage(req) {
     var page = this;
 
-    HomePage.superConstructor.call(this);
-
-    page.element.addClass("home_page").append(
-        $("<div />")
-        .text("This example is powered by the SuperAwesome Front End framework")
-    ,
-        $("<a />",{href:"/pagetwo/"})
-        .text("Go to page 2")
-        .ajax_url()
-    ,
-        $("<div />") //Just for break
-    ,
-        $("<a />",{href:"/param_page/from_homepage"})
-        .text("Link to /param_page/from_homepage")
-        .ajax_url()
-    ,
-        page.stats_element = $("<div />")
+    page.element = $("<div />").addClass("home_page").append(
+        $("<div />").text("This example is powered by the SuperAwesome Front End framework"),
+        $("<a />",{href:"/pagetwo/"}).ajax_url().text("Go to page 2"),
+        $("<div />"), //Just for break
+        $("<a />",{href:"/param_page/from_homepage"}).ajax_url().text("Link to /param_page/from_homepage"),
+        page.stats_element = $("<div />").append(
+            $("<div />").append(
+                $("<span />").text("Document width: "),
+                page.width_span = $("<span />")
+            )
+            ,
+            $("<div />").append(
+                $("<span />").text("Document height: "),
+                page.height_span = $("<span />")
+            ),
+            $("<div />").append(
+                $("<span />").text("Large screen: "),
+                page.large_screen_span = $("<span />")
+            ),
+            $("<div />").append(
+                $("<span />").text("Timer completed (2 seconds after init): "),
+                page.timer_span = $("<span />").text("false")
+            )
+        )
     )
 }
 SAFE.add_url("/", HomePage);
 
-HomePage.prototype.get_title = function() {
-    var page = this;
-    return null;
-}
-
 HomePage.prototype.init = function() {
     var page = this;
 
-}
-
-HomePage.prototype.remove = function() {
-    var page = this;
-
+    setTimeout(function(){
+        page.timer_completed = true;
+        page.timer_span.text("true");
+    },2000);
 }
 
 HomePage.prototype.resize = function(resize_obj) {
     var page = this;
-    page.stats_element.text("Document width: " + resize_obj.window_width + " Document height: " + resize_obj.window_height + " Large screen: " + resize_obj.large_screen);
+    
+    page.width_span.text(resize_obj.window_width + "px");
+    page.height_span.text(resize_obj.window_height + "px");
+    page.large_screen_span.text(resize_obj.large_screen.toString());
 }
-SAFE.extend(PageTwo, Page);
-
-function PageTwo(parameters, url) {
+function PageTwo(req) {
     var page = this;
 
-    PageTwo.superConstructor.call(this);
-
-    page.element.addClass("page_two").append(
-        $("<div />")
-        .text("This is page two")
-    ,
-        $("<a />",{href:'/'})
+    page.element = $("<div />").addClass("page_two").append(
+        $("<div />").text("This is page two")
+        ,
+        $("<a />",{href:'/'}).ajax_url()
         .text("Go back to homepage")
-        .ajax_url()
     )
 }
 SAFE.add_url("/pagetwo/", PageTwo);
 
 PageTwo.prototype.get_title = function() {
-    var page = this;
     return "Page Two";
 }
-
-PageTwo.prototype.init = function() {
-    var page = this;
-
-}
-
-PageTwo.prototype.remove = function() {
-    var page = this;
-
-}
-
-PageTwo.prototype.resize = function(resize_obj) {
-    var page = this;
-
-}
-SAFE.extend(ParamPage, Page);
-
 function ParamPage(req) {
     var page = this;
 
     page.my_param = req.params.my_param;
 
-    ParamPage.superConstructor.call(this);
-
-    page.element.addClass("param_page").append(
-        $("<div />")
-        .text("Param page loaded with: \"" + req.params.my_param + "\". Use your back button.")
+    page.element = $("<div />").addClass("param_page").append(
+        $("<div />").text("Param page loaded with: \"" + req.params.my_param + "\". Use your back button.")
     )
 }
 SAFE.add_url("/param_page/:my_param", ParamPage);
 
 ParamPage.prototype.get_title = function() {
-    var page = this;
     return page.my_param;
 }
-
-ParamPage.prototype.init = function() {
-    var page = this;
-}
-
-ParamPage.prototype.remove = function() {
-    var page = this;
-}
-
-ParamPage.prototype.resize = function(resize_obj) {
-    var page = this;
-}
-SAFE.extend(NotFoundPage, Page);
-
-function NotFoundPage(parameters, url) {
+function NotFoundPage(req) {
     var page = this;
 
-    NotFoundPage.superConstructor.call(this);
-
-    page.element.addClass("not_found_page").append(
-        $("<div />")
-        .text("404 - Page not found")
-    ,
-        $("<a />",{href:'/'})
+    page.element = $("<div />").addClass("not_found_page").append(
+        $("<div />").text("404 - Page not found")
+        ,
+        $("<a />",{href:'/'}).ajax_url()
         .text("Go back to homepage")
-        .ajax_url()
     )
 }
 //No urls - only accessible when used as a 404 page
 
 NotFoundPage.prototype.get_title = function() {
-    var page = this;
     return "Page Not Found";
-}
-
-NotFoundPage.prototype.init = function() {
-    var page = this;
-
-}
-
-NotFoundPage.prototype.remove = function() {
-    var page = this;
-
-}
-
-NotFoundPage.prototype.resize = function(resize_obj) {
-    var page = this;
-
 }
 function Header() {
     var header = this;
 
     header.element = $("<div />").append(
-        $("<a />",{"href":"/"})
+        $("<a />",{"href":"/"}).ajax_url()
         .text("HomePage ")
-        .ajax_url()
     ,
-        $("<a />",{"href":"/pagetwo/"})
+        $("<a />",{"href":"/pagetwo/"}).ajax_url()
         .text("PageTwo ")
-        .ajax_url()
     ,
-        $("<a />",{"href":"/param_page/came_from_header"})
+        $("<a />",{"href":"/param_page/came_from_header"}).ajax_url()
         .text("ParamPage ")
-        .ajax_url()
     ,
         $("<span />")
         .text("This header changes color only when the page is reloaded")
@@ -13662,6 +13638,8 @@ function Header() {
 
 Header.prototype.resize = function(resize_obj) {
     var header = this;
+
+    //Can react to resizing
 }
 
 var page_title_append = "SAFE Example Site";
@@ -13684,11 +13662,14 @@ $(document).ready(function(){
     var page_holder = SAFE.element.addClass("page_holder").appendTo("body");
 
 	SAFE.transition_page = function(new_page,old_page){
-		var title = new_page.get_title();
-		if(title==null){
-			document.title = page_title_append;
+		var title;
+		if(new_page.get_title){
+			title = new_page.get_title();
+		}
+		if(title){
+			document.title = title + " - " + page_title_append;
 		} else {
-			document.title = new_page.get_title() + " - " + page_title_append;
+			document.title = page_title_append;
 		}
 	}
 
