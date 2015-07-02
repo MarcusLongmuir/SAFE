@@ -593,7 +593,6 @@ SAFEClass.prototype.get_class_and_details_for_url = function(url_with_query) {
     };
 }
 
-//url_with_query must be relative to domain (not origin)
 SAFEClass.prototype.load_url = function(url_with_query, push_state) {
     var sf = this;
 
