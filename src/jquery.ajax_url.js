@@ -17,7 +17,10 @@
                     if (Site.history_state_supported) {
                         if (!event.isDefaultPrevented()) {
                             event.preventDefault();
-                            Site.load_url($(element).attr("href"), true);
+                            setTimeout(function(){
+                                //Deferred to allow the event to be prevented
+                                Site.load_url($(element).attr("href"), true);
+                            },1);
                         }
                     } else {
                         window.location = $(element).attr("href");
@@ -32,7 +35,7 @@
 
     $.fn.ajax_url = function(custom_trigger, on_trigger) {
         return this.each(function(){
-            
+
             if($(this).is("a")){
                 ajaxify($(this), custom_trigger, on_trigger);
             }

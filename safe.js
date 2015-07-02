@@ -2139,7 +2139,10 @@
                     if (Site.history_state_supported) {
                         if (!event.isDefaultPrevented()) {
                             event.preventDefault();
-                            Site.load_url($(element).attr("href"), true);
+                            setTimeout(function(){
+                                //Deferred to allow the event to be prevented
+                                Site.load_url($(element).attr("href"), true);
+                            },1);
                         }
                     } else {
                         window.location = $(element).attr("href");
@@ -2154,7 +2157,7 @@
 
     $.fn.ajax_url = function(custom_trigger, on_trigger) {
         return this.each(function(){
-            
+
             if($(this).is("a")){
                 ajaxify($(this), custom_trigger, on_trigger);
             }
@@ -2166,6 +2169,7 @@
         });
     };
 })(jQuery);
+
 /**
  * @fileOverview
  * Copyright (c) 2013 Aaron Gloege
@@ -3163,7 +3167,6 @@ SAFEClass.prototype.get_class_and_details_for_url = function(url_with_query) {
     };
 }
 
-//url_with_query must be relative to domain (not origin)
 SAFEClass.prototype.load_url = function(url_with_query, push_state) {
     var sf = this;
 
