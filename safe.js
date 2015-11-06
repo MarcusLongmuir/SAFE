@@ -2682,7 +2682,6 @@ SAFEClass.prototype.use_page_class = function(details){
 
     var class_name = details.class_name;
 
-    var class_name;
     var class_obj;
     sf.current_details = details;
     if((typeof class_name)==='string'){
@@ -2737,7 +2736,7 @@ SAFEClass.prototype.use_page_class = function(details){
                 sf.current_page = null;
                 sf.previous_class = null;
             }
-            SAFEClass.console.error("No 404 page set. Use Site.set_no_page_found_class(class_name) to set one.");
+            SAFEClass.console.error("No 404 page set. Use SAFE.set_no_page_found_class(class_name) to set one.");
             return;
         } else {
             class_obj = sf.no_page_found_class;
@@ -2961,7 +2960,7 @@ SAFEClass.prototype.replace_current_url = function(new_url, call_url_changed) {
 
     var previous_ignore_value = sf.ignore_next_url;
     sf.ignore_next_url = true;
-    History.replaceState(null, "", Site.origin + new_url);
+    History.replaceState(null, "", SAFE.origin + new_url);
     sf.ignore_next_url = previous_ignore_value;
 
     if(call_url_changed){
@@ -2978,10 +2977,10 @@ SAFEClass.prototype.add_history_state = function(url){
     var sf = this;
 
     var full_url;
-    if(url.substring(0,Site.origin.length)===Site.origin){
+    if(url.substring(0,SAFE.origin.length)===SAFE.origin){
         full_url = url;
     } else {
-        full_url = Site.origin + url;
+        full_url = SAFE.origin + url;
     }
 
     sf.ignore_next_url = true;
@@ -3073,7 +3072,7 @@ SAFEClass.prototype.get_class_and_details_for_url = function(url_with_query) {
             effective_path.length > url.length ||
             url.substring(0, effective_path.length) != effective_path
         ) {
-            SAFEClass.console.error("The requested url (" + url_with_query + ") was not relative to the domain/origin and within the Site.path scope");
+            SAFEClass.console.error("The requested url (" + url_with_query + ") was not relative to the domain/origin and within the SAFE.path scope");
             return null;
         }
         url = url.substring(effective_path.length - 1);
@@ -3159,11 +3158,13 @@ SAFEClass.prototype.get_class_and_details_for_url = function(url_with_query) {
     return {
         'class_name': class_name,
         'query': query_params,
+        'params': url_params,
+        'anchor': anchor,
         'url': url,
         'url_pattern': url_pattern,
         'url_with_query': url_with_query.substring(effective_path.length-1),
-        'params': url_params,
-        'anchor': anchor
+        'full_url': SAFE.origin+url,
+        'initial': sf.initial_url
     };
 }
 
@@ -3175,10 +3176,10 @@ SAFEClass.prototype.load_url = function(url_with_query, push_state) {
     }
 
     var full_url;
-    if(url_with_query.substring(0,Site.origin.length)===Site.origin){
+    if(url_with_query.substring(0,SAFE.origin.length)===SAFE.origin){
         full_url = url_with_query;
     } else {
-        full_url = Site.origin + url_with_query;
+        full_url = SAFE.origin + url_with_query;
     }
 
     if (!sf.history_state_supported) {
