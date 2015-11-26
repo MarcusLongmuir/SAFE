@@ -2136,12 +2136,12 @@
                 if (event.originalEvent.metaKey === true) {
                     //Being opened in another tab
                 } else {
-                    if (Site.history_state_supported) {
+                    if (SAFE.history_state_supported) {
                         if (!event.isDefaultPrevented()) {
                             event.preventDefault();
                             setTimeout(function(){
                                 //Deferred to allow the event to be prevented
-                                Site.load_url($(element).attr("href"), true);
+                                SAFE.load_url($(element).attr("href"), true);
                             },1);
                         }
                     } else {
@@ -2752,6 +2752,9 @@ SAFEClass.prototype.use_page_class = function(details){
     if (redirect_response !== undefined) {
         if((typeof redirect_response) === 'function'){
             //Given a class
+            details.class_name = redirect_response;
+						sf.use_page_class(details);
+            return;
         } else if(redirect_response===null){
             //Load the 404 page
             details.class_name = null;

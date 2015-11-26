@@ -178,6 +178,9 @@ SAFEClass.prototype.use_page_class = function(details){
     if (redirect_response !== undefined) {
         if((typeof redirect_response) === 'function'){
             //Given a class
+            details.class_name = redirect_response;
+						sf.use_page_class(details);
+            return;
         } else if(redirect_response===null){
             //Load the 404 page
             details.class_name = null;
